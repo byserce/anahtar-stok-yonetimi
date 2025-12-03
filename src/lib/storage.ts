@@ -71,11 +71,21 @@ const initializeStorage = (): AppData => {
         const storedData = localStorage.getItem(APP_DATA_STORAGE_KEY);
         if (storedData) {
             const parsedData = JSON.parse(storedData);
+            // Basic validation to check if the data structure is roughly what we expect.
+            // This is not a full-proof migration strategy, but prevents crashes on major changes.
             if (!parsedData.inventories || Object.values(parsedData.inventories).some((inv: any) => !inv.hasOwnProperty('name'))) {
+                console.warn("Local storage data is in an old format. Resetting to initial data.");
                 const initialData = getInitialData();
                 localStorage.setItem(APP_DATA_STORAGE_KEY, JSON.stringify(initialData));
                 return initialData;
             }
+             // Ensure all products have a purchasePrice.
+            Object.values(parsedData.products).forEach((p: any) => {
+                if (p.purchasePrice === undefined) {
+                    p.purchasePrice = 0; // Default to 0 if not present
+                }
+            });
+
             return parsedData;
         } else {
             const initialData = getInitialData();
@@ -83,7 +93,7 @@ const initializeStorage = (): AppData => {
             return initialData;
         }
     } catch (error) {
-        console.error("LocalStorage'a erişilemiyor. Başlangıç verileri kullanılacak.", error);
+        console.error("Could not access localStorage. Using initial data.", error);
         return getInitialData();
     }
 };
@@ -292,7 +302,7 @@ export const addProductToInventory = (inventoryId: string, values: AddProductVal
     data.products[newProductId] = newProduct;
 
     // 2. Add product to inventory
-    inventory.productIds.push(newProductId);
+    inventory.productIds.unshift(newProductId); // Add to the beginning
     inventory.criticalThresholds[newProductId] = values.criticalThreshold;
 
     // 3. Create stock entry
@@ -339,4 +349,29 @@ export const updateProductDetails = (productId: string, updatedDetails: UpdatePr
         return product;
     }
     return undefined;
+};
+
+
+export const deleteProductFromInventory = (inventoryId: string, productId: string) => {
+    const data = getAppData();
+    const inventory = data.inventories[inventoryId];
+    if (!inventory) {
+        return;
+    }
+
+    // 1. Remove from inventory's product list
+    inventory.productIds = inventory.productIds.filter(id => id !== productId);
+
+    // 2. Remove from inventory's critical thresholds
+    delete inventory.criticalThresholds[productId];
+
+    // 3. Remove product's stock record for this inventory
+    const stockKey = `${inventoryId}_${productId}`;
+    delete data.productStocks[stockKey];
+
+    // We do not delete from the global product list `data.products`
+    // as it might be used in other inventories. A garbage collection
+    // mechanism could be implemented later if needed.
+
+    saveAppData(data);
 };

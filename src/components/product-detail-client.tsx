@@ -1,7 +1,7 @@
 'use client';
 
 import { notFound, useRouter } from 'next/navigation';
-import { getProductWithStock } from '@/lib/storage';
+import { getProductWithStock, deleteProductFromInventory } from '@/lib/storage';
 import StockUpdater from '@/components/stock-updater';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,8 @@ import { Skeleton } from './ui/skeleton';
 import { useEffect, useState } from 'react';
 import type { Product, Inventory, ProductStock } from '@/lib/data';
 import ProductEditForm from './product-edit-form';
+import { toast } from '@/hooks/use-toast';
+
 
 type FullProductInfo = {
     product: Product;
@@ -33,6 +35,18 @@ export default function ProductDetailClient({ inventoryId, productId }: { invent
     if(data) {
         const newData = { ...data, product: updatedProduct };
         setData(newData);
+        router.refresh();
+    }
+  }
+
+  const handleProductDelete = () => {
+    if (data) {
+        deleteProductFromInventory(data.inventory.id, data.product.id);
+        toast({
+            title: "Ürün Silindi",
+            description: `${data.product.name} envanterden kalıcı olarak silindi.`,
+        });
+        router.push(`/inventories/${data.inventory.id}`);
         router.refresh();
     }
   }
@@ -91,6 +105,7 @@ export default function ProductDetailClient({ inventoryId, productId }: { invent
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             onProductUpdate={handleProductUpdate}
+            onProductDelete={handleProductDelete}
         />
       )}
     </div>
