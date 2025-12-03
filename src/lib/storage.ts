@@ -192,6 +192,29 @@ export const updateInventory = (inventoryId: string, updates: { name: string; ic
   return inventory;
 };
 
+export const deleteInventory = (inventoryId: string) => {
+    const data = getAppData();
+    const inventory = data.inventories[inventoryId];
+    if (!inventory) {
+        return;
+    }
+
+    // 1. Remove associated product stocks
+    inventory.productIds.forEach(productId => {
+        const stockKey = `${inventoryId}_${productId}`;
+        delete data.productStocks[stockKey];
+    });
+
+    // 2. Delete the inventory itself
+    delete data.inventories[inventoryId];
+    
+    // Note: We don't delete the products from the global `products` table,
+    // as they might be used in other inventories.
+
+    saveAppData(data);
+};
+
+
 // --- Product Specific ---
 export const getProductsForInventory = (inventoryId: string): { product: Product, stock: ProductStock }[] => {
     const data = getAppData();

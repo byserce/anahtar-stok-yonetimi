@@ -16,10 +16,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { getInventoryById, updateInventory } from '@/lib/storage';
-import { X, Plus, ArrowLeft, Trash2 } from 'lucide-react';
+import { getInventoryById, updateInventory, deleteInventory } from '@/lib/storage';
+import { Plus, ArrowLeft, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -51,7 +51,8 @@ export default function EditInventoryPage() {
   
   const [inventory, setInventory] = useState(() => getInventoryById(inventoryId));
   const [loading, setLoading] = useState(true);
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isLocationAlertOpen, setIsLocationAlertOpen] = useState(false);
+  const [isInventoryAlertOpen, setIsInventoryAlertOpen] = useState(false);
   const [locationToRemove, setLocationToRemove] = useState<number | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -81,17 +82,17 @@ export default function EditInventoryPage() {
     name: 'locations',
   });
   
-  const handleRemoveClick = (index: number) => {
+  const handleRemoveLocationClick = (index: number) => {
     setLocationToRemove(index);
-    setIsAlertOpen(true);
+    setIsLocationAlertOpen(true);
   };
 
-  const confirmRemove = () => {
+  const confirmRemoveLocation = () => {
     if (locationToRemove !== null) {
       remove(locationToRemove);
       setLocationToRemove(null);
     }
-    setIsAlertOpen(false);
+    setIsLocationAlertOpen(false);
   };
 
 
@@ -102,6 +103,16 @@ export default function EditInventoryPage() {
       description: `${values.name} envanteri güncellendi.`,
     });
     router.push(`/inventories/${inventoryId}`);
+    router.refresh();
+  }
+
+  const handleDeleteInventory = () => {
+    deleteInventory(inventoryId);
+    toast({
+        title: 'Envanter Silindi',
+        description: `${inventory?.name} envanteri kalıcı olarak silindi.`,
+    });
+    router.push('/');
     router.refresh();
   }
   
@@ -189,7 +200,7 @@ export default function EditInventoryPage() {
                                             <FormControl>
                                                 <Input {...inputField} placeholder={`Konum ${index + 1}`} />
                                             </FormControl>
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveClick(index)} disabled={fields.length <= 1}>
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveLocationClick(index)} disabled={fields.length <= 1}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </FormItem>
@@ -215,12 +226,23 @@ export default function EditInventoryPage() {
                     </form>
                     </Form>
                 </CardContent>
+                <CardFooter className="border-t border-destructive/20 p-6 bg-destructive/5">
+                    <div className="w-full">
+                        <h3 className="text-lg font-semibold text-destructive">Tehlikeli Alan</h3>
+                        <p className="text-sm text-destructive/80 mt-1 mb-4">Bu envanteri silmek geri alınamaz bir işlemdir. Bu envantere ait tüm ürünler ve stok verileri kalıcı olarak silinecektir.</p>
+                        <Button variant="destructive" onClick={() => setIsInventoryAlertOpen(true)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Bu Envanteri Sil
+                        </Button>
+                    </div>
+                </CardFooter>
             </Card>
         </main>
-         <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+
+         <AlertDialog open={isLocationAlertOpen} onOpenChange={setIsLocationAlertOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+                <AlertDialogTitle>Konumu Silmek İstediğinize Emin misiniz?</AlertDialogTitle>
                 <AlertDialogDescription>
                     Bu konumu silmek, bu konuma ait tüm stok verilerini kalıcı olarak silecektir. 
                     Bu işlem geri alınamaz.
@@ -228,7 +250,24 @@ export default function EditInventoryPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => setLocationToRemove(null)}>İptal</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmRemove} className="bg-destructive hover:bg-destructive/90">Sil</AlertDialogAction>
+                <AlertDialogAction onClick={confirmRemoveLocation} className="bg-destructive hover:bg-destructive/90">Sil</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={isInventoryAlertOpen} onOpenChange={setIsInventoryAlertOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Envanteri Silmek İstediğinize Emin misiniz?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Bu işlem geri alınamaz. "{inventory.name}" envanteri ve içindeki tüm ürün ve stok verileri kalıcı olarak silinecektir.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel>İptal</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteInventory} className="bg-destructive hover:bg-destructive/90">
+                    Evet, Sil
+                </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
