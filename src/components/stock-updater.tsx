@@ -101,7 +101,7 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
             <div className="grid grid-cols-2 gap-4 pt-4">
                 <div>
                     <p className="text-sm text-muted-foreground">Alış Fiyatı</p>
-                    <p className="text-2xl font-bold">{product.purchasePrice.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                    <p className="text-2xl font-bold">{(product.purchasePrice || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
                 </div>
                  {product.salePrice && (
                      <div>
