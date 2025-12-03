@@ -26,11 +26,11 @@ const getInitialData = (): AppData => {
   ];
 
   const initialProducts: Product[] = [
-      { id: 'prod_1', name: 'Barel Kilit Seti', code: 'KLT-BRL-01', image: { ...PlaceHolderImages.find(p=>p.id === 'cylinder-lock')!, iconId: undefined } },
-      { id: 'prod_2', name: 'Asma Kilit (Orta Boy)', code: 'KLT-ASM-02', image: { ...PlaceHolderImages.find(p=>p.id === 'padlock')!, iconId: undefined } },
-      { id: 'prod_3', name: 'Akıllı Kilit Sistemi', code: 'KLT-AKL-03', image: { ...PlaceHolderImages.find(p=>p.id === 'smart-lock')!, iconId: undefined } },
-      { id: 'prod_4', name: 'Çelik Kapı Kolu', code: 'AK-KPK-04', image: { ...PlaceHolderImages.find(p=>p.id === 'door-handle')!, iconId: undefined } },
-      { id: 'prod_5', name: 'Ham Anahtar Paketi (100 adet)', code: 'ANH-HAM-05', image: { ...PlaceHolderImages.find(p=>p.id === 'key-bunch')!, iconId: undefined }},
+      { id: 'prod_1', name: 'Barel Kilit Seti', code: 'KLT-BRL-01', image: { ...PlaceHolderImages.find(p=>p.id === 'cylinder-lock')!, iconId: undefined }, purchasePrice: 150, salePrice: 250 },
+      { id: 'prod_2', name: 'Asma Kilit (Orta Boy)', code: 'KLT-ASM-02', image: { ...PlaceHolderImages.find(p=>p.id === 'padlock')!, iconId: undefined }, purchasePrice: 75, salePrice: 120 },
+      { id: 'prod_3', name: 'Akıllı Kilit Sistemi', code: 'KLT-AKL-03', image: { ...PlaceHolderImages.find(p=>p.id === 'smart-lock')!, iconId: undefined }, purchasePrice: 1200, salePrice: 1800 },
+      { id: 'prod_4', name: 'Çelik Kapı Kolu', code: 'AK-KPK-04', image: { ...PlaceHolderImages.find(p=>p.id === 'door-handle')!, iconId: undefined }, purchasePrice: 200, salePrice: 350 },
+      { id: 'prod_5', name: 'Ham Anahtar Paketi (100 adet)', code: 'ANH-HAM-05', image: { ...PlaceHolderImages.find(p=>p.id === 'key-bunch')!, iconId: undefined }, purchasePrice: 80, salePrice: 150 },
   ];
   
   const productStocks: ProductStock[] = [
@@ -229,6 +229,8 @@ type AddProductValues = {
   name: string;
   code: string;
   criticalThreshold: number;
+  purchasePrice: number;
+  salePrice?: number;
   imageType: 'upload' | 'library' | 'icon';
   uploadedImage?: string;
   libraryImageId?: string;
@@ -284,6 +286,8 @@ export const addProductToInventory = (inventoryId: string, values: AddProductVal
         name: values.name,
         code: values.code,
         image: productImage,
+        purchasePrice: values.purchasePrice,
+        salePrice: values.salePrice,
     };
     data.products[newProductId] = newProduct;
 
@@ -312,7 +316,15 @@ export const updateInventoryProductOrder = (inventoryId: string, orderedProductI
     }
 };
 
-export const updateProductDetails = (productId: string, updatedDetails: { name: string, code: string, criticalThreshold: number }, inventoryId: string) => {
+type UpdateProductDetails = {
+    name: string;
+    code: string;
+    criticalThreshold: number;
+    purchasePrice: number;
+    salePrice?: number;
+}
+
+export const updateProductDetails = (productId: string, updatedDetails: UpdateProductDetails, inventoryId: string) => {
     const data = getAppData();
     const product = data.products[productId];
     const inventory = data.inventories[inventoryId];
@@ -320,6 +332,8 @@ export const updateProductDetails = (productId: string, updatedDetails: { name: 
     if (product && inventory) {
         product.name = updatedDetails.name;
         product.code = updatedDetails.code;
+        product.purchasePrice = updatedDetails.purchasePrice;
+        product.salePrice = updatedDetails.salePrice;
         inventory.criticalThresholds[productId] = updatedDetails.criticalThreshold;
         saveAppData(data);
         return product;

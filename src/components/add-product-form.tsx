@@ -43,6 +43,8 @@ import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-cr
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Ürün adı en az 2 karakter olmalıdır.' }),
   code: z.string().min(3, { message: 'Ürün kodu en az 3 karakter olmalıdır.'}),
+  purchasePrice: z.coerce.number().min(0, { message: 'Alış fiyatı 0 veya daha büyük olmalıdır.' }),
+  salePrice: z.coerce.number().min(0, { message: 'Satış fiyatı 0 veya daha büyük olmalıdır.' }).optional().or(z.literal('')),
   criticalThreshold: z.coerce.number().min(0, { message: 'Kritik eşik 0 veya daha büyük olmalıdır.' }),
   imageType: z.enum(['upload', 'library', 'icon']),
   uploadedImage: z.string().optional(),
@@ -111,6 +113,8 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
   const defaultValues = {
       name: '',
       code: '',
+      purchasePrice: 0,
+      salePrice: '' as number | '',
       criticalThreshold: 5,
       imageType: 'library' as const,
       uploadedImage: '',
@@ -177,7 +181,11 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    addProductToInventory(inventory.id, values);
+    const submissionValues = {
+        ...values,
+        salePrice: values.salePrice === '' ? undefined : Number(values.salePrice)
+    };
+    addProductToInventory(inventory.id, submissionValues);
     toast({
       title: 'Başarılı!',
       description: `${values.name} ürünü envantere eklendi.`,
@@ -332,21 +340,48 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <FormField
-                  control={form.control}
-                  name="criticalThreshold"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Kritik Eşik Değeri</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormDescription>Bu sayının altına düşünce uyarı verilir.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+              <FormField
+                control={form.control}
+                name="purchasePrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alış Fiyatı (TL)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="salePrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Satış Fiyatı (TL)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} placeholder="İsteğe bağlı" />
+                    </FormControl>
+                     <FormDescription>Boş bırakılabilir.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="criticalThreshold"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Kritik Eşik</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormDescription>Stok uyarısı için.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             
             <div>
@@ -415,5 +450,3 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
     </>
   );
 }
-
-    

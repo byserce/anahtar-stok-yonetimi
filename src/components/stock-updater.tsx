@@ -18,6 +18,7 @@ import { Badge } from './ui/badge';
 import { Warehouse, Store, Car, Truck, Home, ShoppingBasket } from 'lucide-react';
 import { InventoryIcon } from './inventory-icon';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 type StockUpdaterProps = {
   product: Product;
@@ -97,11 +98,25 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
             <CardTitle className="text-3xl font-bold">{product.name}</CardTitle>
             <Badge variant="secondary" className="w-fit text-base font-mono tracking-wider">{product.code}</Badge>
           </div>
-          <CardDescription className="pt-2 text-lg">
-            Toplam Stok: <span className="font-bold text-foreground">{totalStock}</span>
-          </CardDescription>
+            <div className="grid grid-cols-2 gap-4 pt-4">
+                <div>
+                    <p className="text-sm text-muted-foreground">Alış Fiyatı</p>
+                    <p className="text-2xl font-bold">{product.purchasePrice.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                </div>
+                 {product.salePrice && (
+                     <div>
+                        <p className="text-sm text-muted-foreground">Satış Fiyatı</p>
+                        <p className="text-2xl font-bold">{product.salePrice.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                    </div>
+                )}
+            </div>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <Separator />
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Toplam Stok</h3>
+            <span className="text-2xl font-bold text-primary">{totalStock}</span>
+          </div>
           <h3 className="text-lg font-semibold">Lokasyon Bazlı Stok Durumu</h3>
           <div className="grid gap-4 md:grid-cols-3">
             {inventory.locations.map((loc) => (

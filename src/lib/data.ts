@@ -44,6 +44,8 @@ export type Product = {
   name: string;
   code: string;
   image: ProductImage;
+  purchasePrice: number;
+  salePrice?: number;
 };
 
 // Represents a single inventory

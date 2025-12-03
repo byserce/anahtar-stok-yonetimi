@@ -10,6 +10,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,8 @@ import { updateProductDetails } from '@/lib/storage';
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Ürün adı en az 2 karakter olmalıdır.' }),
   code: z.string().min(3, { message: 'Ürün kodu en az 3 karakter olmalıdır.' }),
+  purchasePrice: z.coerce.number().min(0, { message: 'Alış fiyatı 0 veya daha büyük olmalıdır.' }),
+  salePrice: z.coerce.number().min(0.01, { message: 'Satış fiyatı 0 veya daha büyük olmalıdır.' }).optional().or(z.literal('')),
   criticalThreshold: z.coerce.number().min(0, { message: 'Kritik eşik 0 veya daha büyük olmalıdır.' }),
 });
 
@@ -45,12 +48,18 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
     values: {
       name: product.name,
       code: product.code,
+      purchasePrice: product.purchasePrice || 0,
+      salePrice: product.salePrice || '',
       criticalThreshold: inventory.criticalThresholds[product.id] || 0,
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const updatedProduct = updateProductDetails(product.id, values, inventory.id);
+    const submissionValues = {
+        ...values,
+        salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
+    };
+    const updatedProduct = updateProductDetails(product.id, submissionValues, inventory.id);
     if (updatedProduct) {
         onProductUpdate(updatedProduct);
         toast({
@@ -73,7 +82,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
         <DialogHeader>
           <DialogTitle>Ürün Bilgilerini Düzenle</DialogTitle>
           <DialogDescription>
-            Ürünün temel bilgilerini buradan güncelleyebilirsiniz.
+            Ürünün temel bilgilerini ve fiyatlarını buradan güncelleyebilirsiniz.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -104,6 +113,34 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                 </FormItem>
               )}
             />
+            <div className="grid grid-cols-2 gap-4">
+                 <FormField
+                    control={form.control}
+                    name="purchasePrice"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Alış Fiyatı (TL)</FormLabel>
+                        <FormControl>
+                            <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="salePrice"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Satış Fiyatı (TL)</FormLabel>
+                        <FormControl>
+                            <Input type="number" {...field} placeholder="İsteğe bağlı"/>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
             <FormField
               control={form.control}
               name="criticalThreshold"
