@@ -22,6 +22,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import type { Product, Inventory } from '@/lib/data';
 import { updateProductDetails } from '@/lib/storage';
@@ -227,7 +228,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Ürün Bilgilerini Düzenle</DialogTitle>
             <DialogDescription>
