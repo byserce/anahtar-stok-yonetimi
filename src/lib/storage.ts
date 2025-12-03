@@ -355,6 +355,10 @@ type UpdateProductDetails = {
     criticalThreshold: number;
     purchasePrice: number;
     salePrice?: number;
+    imageType: 'upload' | 'library' | 'icon';
+    uploadedImage?: string;
+    libraryImageId?: string;
+    iconId?: string;
 }
 
 export const updateProductDetails = (productId: string, updatedDetails: UpdateProductDetails, inventoryId: string) => {
@@ -368,6 +372,35 @@ export const updateProductDetails = (productId: string, updatedDetails: UpdatePr
         product.purchasePrice = updatedDetails.purchasePrice;
         product.salePrice = updatedDetails.salePrice;
         inventory.criticalThresholds[productId] = updatedDetails.criticalThreshold;
+
+        let productImage: ProductImage;
+        if (updatedDetails.imageType === 'upload' && updatedDetails.uploadedImage) {
+            productImage = {
+                imageUrl: updatedDetails.uploadedImage,
+                description: 'Kullanıcının yüklediği resim',
+                imageHint: 'uploaded',
+                iconId: undefined,
+            };
+        } else if (updatedDetails.imageType === 'library' && updatedDetails.libraryImageId) {
+            const libImage = PlaceHolderImages.find(p => p.id === updatedDetails.libraryImageId) || PlaceHolderImages[0];
+            productImage = {
+                imageUrl: libImage.imageUrl,
+                description: libImage.description,
+                imageHint: libImage.imageHint,
+                iconId: undefined,
+            };
+        } else if (updatedDetails.imageType === 'icon' && updatedDetails.iconId) {
+            productImage = {
+                imageUrl: '',
+                description: `${updatedDetails.iconId} ikonu`,
+                imageHint: 'icon',
+                iconId: updatedDetails.iconId,
+            };
+        } else {
+            productImage = product.image; // Keep the old image if something is wrong
+        }
+        product.image = productImage;
+
         saveAppData(data);
         return product;
     }

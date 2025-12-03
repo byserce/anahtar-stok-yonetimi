@@ -25,8 +25,17 @@ import {
 import { toast } from '@/hooks/use-toast';
 import type { Product, Inventory } from '@/lib/data';
 import { updateProductDetails } from '@/lib/storage';
-import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Trash2, UploadCloud, Crop } from 'lucide-react';
+import { useState, useRef } from 'react';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { inventoryIcons } from '@/lib/inventory-icons';
+import { InventoryIcon } from './inventory-icon';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from './ui/scroll-area';
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +53,55 @@ const formSchema = z.object({
   purchasePrice: z.coerce.number().min(0, { message: 'Alış fiyatı 0 veya daha büyük olmalıdır.' }),
   salePrice: z.coerce.number().min(0.01, { message: 'Satış fiyatı 0 veya daha büyük olmalıdır.' }).optional().or(z.literal('')),
   criticalThreshold: z.coerce.number().min(0, { message: 'Kritik eşik 0 veya daha büyük olmalıdır.' }),
+  imageType: z.enum(['upload', 'library', 'icon']),
+  uploadedImage: z.string().optional(),
+  libraryImageId: z.string().optional(),
+  iconId: z.string().optional(),
+}).refine(data => {
+    if (data.imageType === 'upload') return !!data.uploadedImage;
+    if (data.imageType === 'library') return !!data.libraryImageId;
+    if (data.imageType === 'icon') return !!data.iconId;
+    return false;
+}, {
+    message: "Lütfen bir ürün görseli seçin veya yükleyin.",
+    path: ["imageType"],
 });
+
+function getCroppedImg(image: HTMLImageElement, crop: Crop, fileName: string): Promise<string> {
+  const canvas = document.createElement('canvas');
+  const scaleX = image.naturalWidth / image.width;
+  const scaleY = image.naturalHeight / image.height;
+  canvas.width = crop.width;
+  canvas.height = crop.height;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    return Promise.reject(new Error('Canvas context is not available.'));
+  }
+
+  const pixelRatio = window.devicePixelRatio || 1;
+  canvas.width = crop.width * pixelRatio;
+  canvas.height = crop.height * pixelRatio;
+  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  ctx.imageSmoothingQuality = 'high';
+
+  ctx.drawImage(
+    image,
+    crop.x * scaleX,
+    crop.y * scaleY,
+    crop.width * scaleX,
+    crop.height * scaleY,
+    0,
+    0,
+    crop.width,
+    crop.height
+  );
+
+  return new Promise((resolve) => {
+    resolve(canvas.toDataURL('image/jpeg'));
+  });
+}
+
 
 type ProductEditFormProps = {
   product: Product;
@@ -57,6 +114,20 @@ type ProductEditFormProps = {
 
 export default function ProductEditForm({ product, inventory, open, onOpenChange, onProductUpdate, onProductDelete }: ProductEditFormProps) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Cropping state
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<Crop>();
+  const [sourceImage, setSourceImage] = useState<string | null>(null);
+  const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  
+  const isIcon = !!product.image.iconId;
+  const isLibraryImage = PlaceHolderImages.some(p => p.imageUrl === product.image.imageUrl);
+  const initialImageType = isIcon ? 'icon' : (isLibraryImage ? 'library' : 'upload');
+
+  const [imagePreview, setImagePreview] = useState<string | null>(initialImageType === 'upload' ? product.image.imageUrl : null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,8 +137,64 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
       purchasePrice: product.purchasePrice || 0,
       salePrice: product.salePrice || '',
       criticalThreshold: inventory.criticalThresholds[product.id] || 0,
+      imageType: initialImageType,
+      iconId: product.image.iconId,
+      libraryImageId: isLibraryImage ? PlaceHolderImages.find(p => p.imageUrl === product.image.imageUrl)?.id : PlaceHolderImages[0].id,
+      uploadedImage: initialImageType === 'upload' ? product.image.imageUrl : undefined,
     },
   });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSourceImage(reader.result as string);
+        setIsCropDialogOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = async () => {
+    if (completedCrop && imgRef.current) {
+        try {
+            const croppedImageUrl = await getCroppedImg(imgRef.current, completedCrop, 'cropped_image.jpg');
+            setImagePreview(croppedImageUrl);
+            form.setValue('uploadedImage', croppedImageUrl);
+            form.setValue('imageType', 'upload');
+            form.clearErrors('imageType');
+            setIsCropDialogOpen(false);
+        } catch (e) {
+            console.error(e);
+            toast({
+                title: "Resim Kırpılamadı",
+                description: "Resim kırpılırken bir hata oluştu. Lütfen tekrar deneyin.",
+                variant: "destructive"
+            });
+        }
+    }
+  };
+
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    const crop = centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 90,
+        },
+        16 / 9,
+        width,
+        height
+      ),
+      width,
+      height
+    );
+    setCrop(crop);
+    setCompletedCrop(crop);
+  };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const submissionValues = {
@@ -100,15 +227,15 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Ürün Bilgilerini Düzenle</DialogTitle>
             <DialogDescription>
-              Ürünün temel bilgilerini ve fiyatlarını buradan güncelleyebilirsiniz.
+              Ürünün temel bilgilerini, fiyatlarını ve görselini buradan güncelleyebilirsiniz.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4 max-h-[80vh] overflow-y-auto px-1">
               <FormField
                 control={form.control}
                 name="name"
@@ -135,6 +262,112 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="imageType"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Ürün Görseli</FormLabel>
+                        <Tabs 
+                            value={field.value} 
+                            onValueChange={(value) => field.onChange(value as 'upload'|'library'|'icon')} 
+                            className="w-full"
+                        >
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="upload">Fotoğraf Yükle</TabsTrigger>
+                                <TabsTrigger value="library">Kütüphane</TabsTrigger>
+                                <TabsTrigger value="icon">İkon Seç</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="upload" className="mt-4">
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex flex-col items-center justify-center gap-4">
+                                             <div className="flex h-32 w-32 items-center justify-center rounded-lg border-2 border-dashed">
+                                                {imagePreview ? (
+                                                    <Image src={imagePreview} alt="Yüklenen resim önizlemesi" width={128} height={128} className="h-full w-full rounded-lg object-cover" />
+                                                ) : (
+                                                    <UploadCloud className="h-10 w-10 text-muted-foreground" />
+                                                )}
+                                             </div>
+                                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                                {imagePreview ? 'Resmi Değiştir' : 'Resim Seç'}
+                                            </Button>
+                                            <Input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                            <TabsContent value="library" className="mt-4">
+                               <FormField
+                                    control={form.control}
+                                    name="libraryImageId"
+                                    render={({ field: radioField }) => (
+                                        <FormItem>
+                                            <RadioGroup 
+                                                onValueChange={(value) => {
+                                                  radioField.onChange(value);
+                                                  form.setValue('imageType', 'library');
+                                                }}
+                                                defaultValue={radioField.value}
+                                                className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+                                            >
+                                                {PlaceHolderImages.map(img => (
+                                                    <FormItem key={img.id}>
+                                                        <FormControl>
+                                                            <RadioGroupItem value={img.id} id={`edit-lib-${img.id}`} className="sr-only" />
+                                                        </FormControl>
+                                                        <FormLabel htmlFor={`edit-lib-${img.id}`}>
+                                                            <div className={cn("cursor-pointer overflow-hidden rounded-md border-2 border-muted bg-popover transition-all hover:border-primary", radioField.value === img.id && "border-primary ring-2 ring-primary")}>
+                                                                <Image src={img.imageUrl} alt={img.description} width={200} height={150} className="aspect-video w-full object-cover" />
+                                                                <p className="p-2 text-xs font-medium truncate">{img.description}</p>
+                                                            </div>
+                                                        </FormLabel>
+                                                    </FormItem>
+                                                ))}
+                                            </RadioGroup>
+                                        </FormItem>
+                                    )}
+                                />
+                            </TabsContent>
+                            <TabsContent value="icon" className="mt-4">
+                                <FormField
+                                    control={form.control}
+                                    name="iconId"
+                                    render={({ field: radioField }) => (
+                                        <FormItem>
+                                        <ScrollArea className="h-60 w-full">
+                                            <RadioGroup
+                                                onValueChange={(value) => {
+                                                    radioField.onChange(value);
+                                                    form.setValue('imageType', 'icon');
+                                                }}
+                                                defaultValue={radioField.value}
+                                                className="grid grid-cols-4 gap-2"
+                                            >
+                                                {inventoryIcons.map((icon) => (
+                                                    <FormItem key={icon.id} className="flex items-center justify-center">
+                                                        <FormControl>
+                                                           <RadioGroupItem value={icon.id} id={`edit-icon-${icon.id}`} className="sr-only" />
+                                                        </FormControl>
+                                                        <FormLabel htmlFor={`edit-icon-${icon.id}`} className={cn("flex h-16 w-16 flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 transition-all hover:bg-accent hover:text-accent-foreground", radioField.value === icon.id && "border-primary")}>
+                                                            <InventoryIcon iconId={icon.id} className="h-8 w-8" />
+                                                        </FormLabel>
+                                                    </FormItem>
+                                                ))}
+                                            </RadioGroup>
+                                        </ScrollArea>
+                                        </FormItem>
+                                    )}
+                                />
+                            </TabsContent>
+                        </Tabs>
+                         <FormMessage>{form.formState.errors.imageType?.message}</FormMessage>
+                    </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-2 gap-4">
                   <FormField
                       control={form.control}
@@ -176,7 +409,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                   </FormItem>
                 )}
               />
-              <DialogFooter className="sm:justify-between">
+              <DialogFooter className="sm:justify-between pt-4">
                 <Button type="button" variant="destructive" onClick={() => setIsAlertOpen(true)}>
                     <Trash2 className="mr-2 h-4 w-4" />
                     Ürünü Sil
@@ -187,6 +420,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
           </Form>
         </DialogContent>
       </Dialog>
+      
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -203,6 +437,42 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+    <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Resmi Kırp</DialogTitle>
+                <DialogDescription>
+                    Ürün görseli olarak kullanılacak alanı seçin.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="my-4 flex justify-center">
+               {sourceImage && (
+                    <ReactCrop
+                        crop={crop}
+                        onChange={c => setCrop(c)}
+                        onComplete={c => setCompletedCrop(c)}
+                        aspect={16/9}
+                    >
+                        <Image
+                            ref={imgRef}
+                            alt="Crop me"
+                            src={sourceImage}
+                            onLoad={onImageLoad}
+                            width={800}
+                            height={450}
+                            style={{ maxHeight: '70vh', objectFit: 'contain' }}
+                        />
+                    </ReactCrop>
+                )}
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCropDialogOpen(false)}>İptal</Button>
+                <Button onClick={handleCropComplete}><Crop className="mr-2 h-4 w-4" /> Kırp ve Kullan</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
     </>
   );
 }
