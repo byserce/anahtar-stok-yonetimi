@@ -419,7 +419,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
             <AlertDialogAction onClick={handleDeleteClick} className="bg-destructive hover:bg-destructive/90">
                 {t('delete')}
             </AlertDialogAction>
-          </Footer>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
