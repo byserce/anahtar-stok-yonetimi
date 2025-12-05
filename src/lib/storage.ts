@@ -20,17 +20,17 @@ let appData: AppData | null = null;
 const getInitialData = (): AppData => {
   const defaultInventoryId = 'inv_1';
   const defaultLocations: Location[] = [
-    { id: 'loc_1', name: 'Kitchen' },
-    { id: 'loc_2', name: 'Pantry' },
-    { id: 'loc_3', name: 'Garage' },
+    { id: 'loc_1', name: 'Mutfak' },
+    { id: 'loc_2', name: 'Kiler' },
+    { id: 'loc_3', name: 'Garaj' },
   ];
 
   const initialProducts: Product[] = [
-      { id: 'prod_1', name: 'Pasta (500g)', code: 'FOOD-PST-01', image: { ...PlaceHolderImages.find(p=>p.id === 'pasta-noodles')!, iconId: undefined }, purchasePrice: 2, salePrice: 3.5 },
-      { id: 'prod_2', name: 'Tomato Sauce', code: 'FOOD-SAU-02', image: { ...PlaceHolderImages.find(p=>p.id === 'canned-goods')!, iconId: undefined }, purchasePrice: 1.5, salePrice: 2.5 },
-      { id: 'prod_3', name: 'Rice (1kg)', code: 'FOOD-RIC-03', image: { ...PlaceHolderImages.find(p=>p.id === 'rice-bag')!, iconId: undefined }, purchasePrice: 3, salePrice: 5 },
-      { id: 'prod_4', name: 'LED Bulb (9W)', code: 'HOME-BUL-04', image: { ...PlaceHolderImages.find(p=>p.id === 'light-bulbs')!, iconId: undefined }, purchasePrice: 4, salePrice: 7 },
-      { id: 'prod_5', name: 'Toilet Paper (12 pack)', code: 'HOME-TP-05', image: { ...PlaceHolderImages.find(p=>p.id === 'toilet-paper')!, iconId: undefined }, purchasePrice: 8, salePrice: 12 },
+      { id: 'prod_1', name: 'Makarna (500g)', code: 'FOOD-PST-01', image: { ...PlaceHolderImages.find(p=>p.id === 'pasta-noodles')!, iconId: undefined }, purchasePrice: 2, salePrice: 3.5 },
+      { id: 'prod_2', name: 'Domates Salçası', code: 'FOOD-SAU-02', image: { ...PlaceHolderImages.find(p=>p.id === 'canned-goods')!, iconId: undefined }, purchasePrice: 1.5, salePrice: 2.5 },
+      { id: 'prod_3', name: 'Pirinç (1kg)', code: 'FOOD-RIC-03', image: { ...PlaceHolderImages.find(p=>p.id === 'rice-bag')!, iconId: undefined }, purchasePrice: 3, salePrice: 5 },
+      { id: 'prod_4', name: 'LED Ampul (9W)', code: 'HOME-BUL-04', image: { ...PlaceHolderImages.find(p=>p.id === 'light-bulbs')!, iconId: undefined }, purchasePrice: 4, salePrice: 7 },
+      { id: 'prod_5', name: 'Tuvalet Kağıdı (12li)', code: 'HOME-TP-05', image: { ...PlaceHolderImages.find(p=>p.id === 'toilet-paper')!, iconId: undefined }, purchasePrice: 8, salePrice: 12 },
   ];
   
   const productStocks: ProductStock[] = [
@@ -43,7 +43,7 @@ const getInitialData = (): AppData => {
 
   const defaultInventory: Inventory = {
     id: defaultInventoryId,
-    name: 'My Home Inventory',
+    name: 'Ev Envanterim',
     iconId: 'home',
     locations: defaultLocations,
     productIds: initialProducts.map(p => p.id),
