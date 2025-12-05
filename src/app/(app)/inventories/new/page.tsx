@@ -38,7 +38,7 @@ export default function NewInventoryPage() {
     defaultValues: {
       name: '',
       iconId: inventoryIcons[0].id,
-      locations: [{ name: 'Dükkan' }, { name: 'Araç' }],
+      locations: [{ name: 'Mutfak' }, { name: 'Kiler' }],
     },
   });
 
@@ -83,7 +83,7 @@ export default function NewInventoryPage() {
                                 <FormItem>
                                     <FormLabel>Envanter Adı</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Örn: Ana Depo, Yazlık, Servis Aracı" {...field} />
+                                        <Input placeholder="Örn: Ev, Ofis, Küçük İşletme" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

@@ -1,52 +1,52 @@
 {
   "placeholderImages": [
     {
-      "id": "key-bunch",
-      "description": "A bunch of keys on a ring",
-      "imageUrl": "https://images.unsplash.com/photo-1584985429926-08867327d3a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxrZXlzfGVufDB8fHx8MTc2NDY3NzkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "keys"
+      "id": "pasta-noodles",
+      "description": "Farklı çeşitlerde makarna",
+      "imageUrl": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwYXN0YXxlbnwwfHx8fDE3NjQ3ODAwMjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pasta"
     },
     {
-      "id": "padlock",
-      "description": "A sturdy silver padlock",
-      "imageUrl": "https://images.unsplash.com/photo-1618588845382-4267677cfc11?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwYWRsb2NrfGVufDB8fHx8MTc2NDYwNjcyMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "padlock"
+      "id": "canned-goods",
+      "description": "Konserve domates ve sebzeler",
+      "imageUrl": "https://images.unsplash.com/photo-1560702704-53331873b6f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYW5uZWQlMjBmb29kfGVufDB8fHx8MTc2NDc4MDAyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "canned food"
     },
     {
-      "id": "door-handle",
-      "description": "A modern stainless steel door handle",
-      "imageUrl": "https://images.unsplash.com/photo-1528278966557-c87afae1e1f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkb29yJTIwaGFuZGxlfGVufDB8fHx8MTc2NDYwNjcyMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "door handle"
+      "id": "rice-bag",
+      "description": "Bir çuval içinde pirinç",
+      "imageUrl": "https://images.unsplash.com/photo-1586201375822-52c676937519?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyaWNlJTIwYmFnfGVufDB8fHx8MTc2NDc4MDAyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rice bag"
     },
     {
-      "id": "cylinder-lock",
-      "description": "A brass cylinder lock mechanism",
-      "imageUrl": "https://images.unsplash.com/photo-1707167144719-0f65755cdddc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsb2NrJTIwbWVjaGFuaXNtfGVufDB8fHx8MTc2NDY3NzkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "lock mechanism"
+      "id": "light-bulbs",
+      "description": "Çeşitli LED ampuller",
+      "imageUrl": "https://images.unsplash.com/photo-1599401792646-a54b3583a537?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsaWdodGJ1bGJ8ZW58MHx8fHwxNzY0NzgwMDI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lightbulb"
     },
     {
-      "id": "smart-lock",
-      "description": "An electronic smart lock with a keypad",
-      "imageUrl": "https://images.unsplash.com/photo-1558002038-1055907df827?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzbWFydCUyMGxvY2t8ZW58MHx8fHwxNzY0NTk3MjU4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "smart lock"
+      "id": "toilet-paper",
+      "description": "Tuvalet kağıdı ruloları",
+      "imageUrl": "https://images.unsplash.com/photo-1584583724125-452331536c4b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0b2lsZXQlMjBwYXBlcnxlbnwwfHx8fDE3NjQ3ODAwMjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "toilet paper"
     },
     {
-      "id": "key-cutting-machine",
-      "description": "A professional key cutting machine",
-      "imageUrl": "https://images.unsplash.com/photo-1633769861467-1b28ae2d3e1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8a2V5JTIwbWFjaGluZXxlbnwwfHx8fDE3NjQ2Nzc5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "key machine"
+      "id": "batteries",
+      "description": "Farklı boyutlarda piller",
+      "imageUrl": "https://images.unsplash.com/photo-1596700324325-a1318c64a511?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiYXR0ZXJpZXN8ZW58MHx8fHwxNzY0NzgwMDI4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "batteries"
     },
     {
-      "id": "safe-box",
-      "description": "A small digital safe box",
-      "imageUrl": "https://images.unsplash.com/photo-1527610276295-f4c1b38decc5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8c2FmZXxlbnwwfHx8fDE3NjQ2Nzc5Mjl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "safe"
+      "id": "cleaning-supplies",
+      "description": "Çeşitli temizlik malzemeleri",
+      "imageUrl": "https://images.unsplash.com/photo-1581578731548-c64695cc6952?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjTEVBTklOR3xlbnwwfHx8fDE3NjQ3ODAwMjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cleaning supplies"
     },
     {
-      "id": "car-key",
-      "description": "A modern car key with remote buttons",
-      "imageUrl": "https://images.unsplash.com/photo-1671719367451-7bf05ae9549c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjYXIlMjBrZXl8ZW58MHx8fHwxNzY0NTk3MjU4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "car key"
+      "id": "water-bottles",
+      "description": "Plastik su şişeleri",
+      "imageUrl": "https://images.unsplash.com/photo-1623018035782-b2692b11a75d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHdhdGVyJTIwYm90dGxlfGVufDB8fHx8MTc2NDc4MDAyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "water bottles"
     }
   ]
 }

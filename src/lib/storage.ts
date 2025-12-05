@@ -20,39 +20,39 @@ let appData: AppData | null = null;
 const getInitialData = (): AppData => {
   const defaultInventoryId = 'inv_1';
   const defaultLocations: Location[] = [
-    { id: 'loc_1', name: 'Depo' },
-    { id: 'loc_2', name: 'Dükkan' },
-    { id: 'loc_3', name: 'Araç' },
+    { id: 'loc_1', name: 'Mutfak' },
+    { id: 'loc_2', name: 'Kiler' },
+    { id: 'loc_3', name: 'Garaj' },
   ];
 
   const initialProducts: Product[] = [
-      { id: 'prod_1', name: 'Barel Kilit Seti', code: 'KLT-BRL-01', image: { ...PlaceHolderImages.find(p=>p.id === 'cylinder-lock')!, iconId: undefined }, purchasePrice: 150, salePrice: 250 },
-      { id: 'prod_2', name: 'Asma Kilit (Orta Boy)', code: 'KLT-ASM-02', image: { ...PlaceHolderImages.find(p=>p.id === 'padlock')!, iconId: undefined }, purchasePrice: 75, salePrice: 120 },
-      { id: 'prod_3', name: 'Akıllı Kilit Sistemi', code: 'KLT-AKL-03', image: { ...PlaceHolderImages.find(p=>p.id === 'smart-lock')!, iconId: undefined }, purchasePrice: 1200, salePrice: 1800 },
-      { id: 'prod_4', name: 'Çelik Kapı Kolu', code: 'AK-KPK-04', image: { ...PlaceHolderImages.find(p=>p.id === 'door-handle')!, iconId: undefined }, purchasePrice: 200, salePrice: 350 },
-      { id: 'prod_5', name: 'Ham Anahtar Paketi (100 adet)', code: 'ANH-HAM-05', image: { ...PlaceHolderImages.find(p=>p.id === 'key-bunch')!, iconId: undefined }, purchasePrice: 80, salePrice: 150 },
+      { id: 'prod_1', name: 'Makarna (500g)', code: 'GID-MKR-01', image: { ...PlaceHolderImages.find(p=>p.id === 'pasta-noodles')!, iconId: undefined }, purchasePrice: 20, salePrice: 30 },
+      { id: 'prod_2', name: 'Domates Salçası', code: 'GID-SLC-02', image: { ...PlaceHolderImages.find(p=>p.id === 'canned-goods')!, iconId: undefined }, purchasePrice: 35, salePrice: 50 },
+      { id: 'prod_3', name: 'Pirinç (1kg)', code: 'GID-PRN-03', image: { ...PlaceHolderImages.find(p=>p.id === 'rice-bag')!, iconId: undefined }, purchasePrice: 50, salePrice: 75 },
+      { id: 'prod_4', name: 'LED Ampul (9W)', code: 'EV-AMP-04', image: { ...PlaceHolderImages.find(p=>p.id === 'light-bulbs')!, iconId: undefined }, purchasePrice: 40, salePrice: 60 },
+      { id: 'prod_5', name: 'Tuvalet Kağıdı (12li)', code: 'TMZ-TK-05', image: { ...PlaceHolderImages.find(p=>p.id === 'toilet-paper')!, iconId: undefined }, purchasePrice: 100, salePrice: 150 },
   ];
   
   const productStocks: ProductStock[] = [
-      { productId: 'prod_1', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 10, loc_2: 4, loc_3: 2 } },
-      { productId: 'prod_2', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 25, loc_2: 15, loc_3: 8 } },
-      { productId: 'prod_3', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 3, loc_2: 1, loc_3: 1 } },
-      { productId: 'prod_4', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 15, loc_2: 12, loc_3: 3 } },
-      { productId: 'prod_5', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 5, loc_2: 2, loc_3: 4 } },
+      { productId: 'prod_1', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 5, loc_2: 10, loc_3: 0 } },
+      { productId: 'prod_2', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 3, loc_2: 8, loc_3: 1 } },
+      { productId: 'prod_3', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 2, loc_2: 5, loc_3: 0 } },
+      { productId: 'prod_4', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 4, loc_2: 2, loc_3: 6 } },
+      { productId: 'prod_5', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 1, loc_2: 3, loc_3: 2 } },
   ];
 
   const defaultInventory: Inventory = {
     id: defaultInventoryId,
-    name: 'Ana Envanter',
-    iconId: 'warehouse',
+    name: 'Ev Envanterim',
+    iconId: 'home',
     locations: defaultLocations,
     productIds: initialProducts.map(p => p.id),
     criticalThresholds: {
-        'prod_1': 5,
-        'prod_2': 10,
-        'prod_3': 2,
-        'prod_4': 8,
-        'prod_5': 3,
+        'prod_1': 2,
+        'prod_2': 2,
+        'prod_3': 1,
+        'prod_4': 3,
+        'prod_5': 2,
     },
   };
 

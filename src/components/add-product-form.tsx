@@ -214,7 +214,7 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                   <FormItem>
                     <FormLabel>Ürün Adı</FormLabel>
                     <FormControl>
-                      <Input placeholder="Örn: Barel Kilit Seti" {...field} />
+                      <Input placeholder="Örn: Domates Salçası, Ampul" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -227,7 +227,7 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                   <FormItem>
                     <FormLabel>Ürün Kodu</FormLabel>
                     <FormControl>
-                      <Input placeholder="Örn: KLT-BRL-01" {...field} />
+                      <Input placeholder="Örn: GID-SL-01" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
