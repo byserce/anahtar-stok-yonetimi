@@ -18,48 +18,10 @@ let appData: AppData | null = null;
 // =================================================================
 
 const getInitialData = (): AppData => {
-  const defaultInventoryId = 'inv_1';
-  const defaultLocations: Location[] = [
-    { id: 'loc_1', name: 'Mutfak' },
-    { id: 'loc_2', name: 'Kiler' },
-    { id: 'loc_3', name: 'Garaj' },
-  ];
-
-  const initialProducts: Product[] = [
-      { id: 'prod_1', name: 'Makarna (500g)', code: 'FOOD-PST-01', image: { ...PlaceHolderImages.find(p=>p.id === 'pasta-noodles')!, iconId: undefined }, purchasePrice: 2, salePrice: 3.5 },
-      { id: 'prod_2', name: 'Domates Salçası', code: 'FOOD-SAU-02', image: { ...PlaceHolderImages.find(p=>p.id === 'canned-goods')!, iconId: undefined }, purchasePrice: 1.5, salePrice: 2.5 },
-      { id: 'prod_3', name: 'Pirinç (1kg)', code: 'FOOD-RIC-03', image: { ...PlaceHolderImages.find(p=>p.id === 'rice-bag')!, iconId: undefined }, purchasePrice: 3, salePrice: 5 },
-      { id: 'prod_4', name: 'LED Ampul (9W)', code: 'HOME-BUL-04', image: { ...PlaceHolderImages.find(p=>p.id === 'light-bulbs')!, iconId: undefined }, purchasePrice: 4, salePrice: 7 },
-      { id: 'prod_5', name: 'Tuvalet Kağıdı (12li)', code: 'HOME-TP-05', image: { ...PlaceHolderImages.find(p=>p.id === 'toilet-paper')!, iconId: undefined }, purchasePrice: 8, salePrice: 12 },
-  ];
-  
-  const productStocks: ProductStock[] = [
-      { productId: 'prod_1', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 5, loc_2: 10, loc_3: 0 } },
-      { productId: 'prod_2', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 3, loc_2: 8, loc_3: 1 } },
-      { productId: 'prod_3', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 2, loc_2: 5, loc_3: 0 } },
-      { productId: 'prod_4', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 4, loc_2: 2, loc_3: 6 } },
-      { productId: 'prod_5', inventoryId: defaultInventoryId, stockByLocation: { loc_1: 1, loc_2: 3, loc_3: 2 } },
-  ];
-
-  const defaultInventory: Inventory = {
-    id: defaultInventoryId,
-    name: 'Ev Envanterim',
-    iconId: 'home',
-    locations: defaultLocations,
-    productIds: initialProducts.map(p => p.id),
-    criticalThresholds: {
-        'prod_1': 2,
-        'prod_2': 2,
-        'prod_3': 1,
-        'prod_4': 3,
-        'prod_5': 2,
-    },
-  };
-
   return {
-    products: initialProducts.reduce((acc, p) => ({ ...acc, [p.id]: p }), {}),
-    inventories: { [defaultInventoryId]: defaultInventory },
-    productStocks: productStocks.reduce((acc, ps) => ({ ...acc, [`${ps.inventoryId}_${ps.productId}`]: ps }), {}),
+    products: {},
+    inventories: {},
+    productStocks: {},
   };
 };
 
