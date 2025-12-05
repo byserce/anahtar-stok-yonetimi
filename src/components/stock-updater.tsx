@@ -19,6 +19,8 @@ import { Warehouse, Store, Car, Truck, Home, ShoppingBasket } from 'lucide-react
 import { InventoryIcon } from './inventory-icon';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
+import { useSettings } from '@/context/settings-context';
+import { useTranslation } from '@/context/translation-context';
 
 type StockUpdaterProps = {
   product: Product;
@@ -50,6 +52,8 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
   const [stock, setStock] = useState(initialStock.stockByLocation);
   const hasImage = product.image.imageUrl && product.image.imageUrl.startsWith('http');
   const hasDataUrl = product.image.imageUrl && product.image.imageUrl.startsWith('data:');
+  const { currency, locale } = useSettings();
+  const { t } = useTranslation();
 
   // When the initialStock prop changes, update the state
   useEffect(() => {
@@ -61,8 +65,8 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
     
     if (newStockCount < 0) {
       toast({
-          title: "Stok Sıfır",
-          description: `${inventory.locations.find(l=>l.id === locationId)?.name} stok adedi zaten sıfır.`,
+          title: t('stock_is_zero_title'),
+          description: t('stock_is_zero_description', { locationName: inventory.locations.find(l=>l.id === locationId)?.name }),
           variant: "destructive"
       });
       return;
@@ -74,6 +78,11 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
   };
 
   const totalStock = Object.values(stock).reduce((sum, val) => sum + val, 0);
+
+  const formatCurrency = (value: number | undefined) => {
+    if (value === undefined) return '';
+    return value.toLocaleString(locale, { style: 'currency', currency });
+  }
 
   return (
     <div className="mx-auto max-w-4xl p-4 md:p-6">
@@ -100,13 +109,13 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
           </div>
             <div className="grid grid-cols-2 gap-4 pt-4">
                 <div>
-                    <p className="text-sm text-muted-foreground">Alış Fiyatı</p>
-                    <p className="text-2xl font-bold">{(product.purchasePrice || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                    <p className="text-sm text-muted-foreground">{t('purchase_price')}</p>
+                    <p className="text-2xl font-bold">{formatCurrency(product.purchasePrice)}</p>
                 </div>
                  {product.salePrice && (
                      <div>
-                        <p className="text-sm text-muted-foreground">Satış Fiyatı</p>
-                        <p className="text-2xl font-bold">{product.salePrice.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                        <p className="text-sm text-muted-foreground">{t('sale_price')}</p>
+                        <p className="text-2xl font-bold">{formatCurrency(product.salePrice)}</p>
                     </div>
                 )}
             </div>
@@ -114,10 +123,10 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
         <CardContent className="grid gap-4">
           <Separator />
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Toplam Stok</h3>
+            <h3 className="text-lg font-semibold">{t('total_stock')}</h3>
             <span className="text-2xl font-bold text-primary">{totalStock}</span>
           </div>
-          <h3 className="text-lg font-semibold">Lokasyon Bazlı Stok Durumu</h3>
+          <h3 className="text-lg font-semibold">{t('stock_by_location')}</h3>
           <div className="grid gap-4 md:grid-cols-3">
             {inventory.locations.map((loc) => (
               <Card key={loc.id}>
@@ -133,7 +142,7 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
                       size="icon"
                       className="h-12 w-12 rounded-full"
                       onClick={() => handleStockChange(loc.id, -1)}
-                      aria-label={`${loc.name} stok eksilt`}
+                      aria-label={`${t('decrease_stock_for')} ${loc.name}`}
                     >
                       <Minus className="h-6 w-6" />
                     </Button>
@@ -142,7 +151,7 @@ export default function StockUpdater({ product, inventory, stock: initialStock }
                       size="icon"
                       className="h-10 w-10"
                       onClick={() => handleStockChange(loc.id, 1)}
-                       aria-label={`${loc.name} stok arttır`}
+                       aria-label={`${t('increase_stock_for')} ${loc.name}`}
                     >
                       <Plus className="h-5 w-5" />
                     </Button>

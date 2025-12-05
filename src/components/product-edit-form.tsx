@@ -46,13 +46,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useTranslation } from '@/context/translation-context';
+import { useSettings } from '@/context/settings-context';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Ürün adı en az 2 karakter olmalıdır.' }),
-  code: z.string().min(3, { message: 'Ürün kodu en az 3 karakter olmalıdır.' }),
-  purchasePrice: z.coerce.number().min(0, { message: 'Alış fiyatı 0 veya daha büyük olmalıdır.' }),
-  salePrice: z.coerce.number().min(0.01, { message: 'Satış fiyatı 0 veya daha büyük olmalıdır.' }).optional().or(z.literal('')),
-  criticalThreshold: z.coerce.number().min(0, { message: 'Kritik eşik 0 veya daha büyük olmalıdır.' }),
+  name: z.string().min(2, { message: 'Product name must be at least 2 characters.' }),
+  code: z.string().min(3, { message: 'Product code must be at least 3 characters.' }),
+  purchasePrice: z.coerce.number().min(0, { message: 'Purchase price must be 0 or greater.' }),
+  salePrice: z.coerce.number().min(0.01, { message: 'Sale price must be 0 or greater.' }).optional().or(z.literal('')),
+  criticalThreshold: z.coerce.number().min(0, { message: 'Critical threshold must be 0 or greater.' }),
   imageType: z.enum(['upload', 'icon']),
   uploadedImage: z.string().optional(),
   iconId: z.string().optional(),
@@ -61,7 +63,7 @@ const formSchema = z.object({
     if (data.imageType === 'icon') return !!data.iconId;
     return false;
 }, {
-    message: "Lütfen bir ürün görseli seçin veya yükleyin.",
+    message: "Please upload an image or select an icon.",
     path: ["imageType"],
 });
 
@@ -113,7 +115,9 @@ type ProductEditFormProps = {
 export default function ProductEditForm({ product, inventory, open, onOpenChange, onProductUpdate, onProductDelete }: ProductEditFormProps) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const { t } = useTranslation();
+  const { currency } = useSettings();
+
   // Cropping state
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<Crop>();
@@ -126,8 +130,26 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
 
   const [imagePreview, setImagePreview] = useState<string | null>(initialImageType === 'upload' ? product.image.imageUrl : null);
   
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    const translatedFormSchema = z.object({
+      name: z.string().min(2, { message: t('product_name_min_char', { count: 2 }) }),
+      code: z.string().min(3, { message: t('product_code_min_char', { count: 3 }) }),
+      purchasePrice: z.coerce.number().min(0, { message: t('purchase_price_min_value') }),
+      salePrice: z.coerce.number().min(0.01, { message: t('sale_price_min_value') }).optional().or(z.literal('')),
+      criticalThreshold: z.coerce.number().min(0, { message: t('critical_threshold_min_value') }),
+      imageType: z.enum(['upload', 'icon']),
+      uploadedImage: z.string().optional(),
+      iconId: z.string().optional(),
+    }).refine(data => {
+        if (data.imageType === 'upload') return !!data.uploadedImage;
+        if (data.imageType === 'icon') return !!data.iconId;
+        return false;
+    }, {
+        message: t('select_product_image_message'),
+        path: ["imageType"],
+    });
+
+  const form = useForm<z.infer<typeof translatedFormSchema>>({
+    resolver: zodResolver(translatedFormSchema),
     values: {
       name: product.name,
       code: product.code,
@@ -164,8 +186,8 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
         } catch (e) {
             console.error(e);
             toast({
-                title: "Resim Kırpılamadı",
-                description: "Resim kırpılırken bir hata oluştu. Lütfen tekrar deneyin.",
+                title: t('image_crop_failed_title'),
+                description: t('image_crop_failed_description'),
                 variant: "destructive"
             });
         }
@@ -192,7 +214,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
   };
 
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof translatedFormSchema>) {
     const submissionValues = {
         ...values,
         salePrice: values.salePrice === '' ? undefined : Number(values.salePrice),
@@ -201,14 +223,14 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
     if (updatedProduct) {
         onProductUpdate(updatedProduct);
         toast({
-          title: 'Başarılı!',
-          description: `${values.name} ürünü başarıyla güncellendi.`,
+          title: t('success'),
+          description: t('product_updated_message', { name: values.name }),
         });
         onOpenChange(false);
     } else {
         toast({
-            title: 'Hata!',
-            description: `Ürün güncellenirken bir sorun oluştu.`,
+            title: t('error'),
+            description: t('product_update_error'),
             variant: 'destructive',
           });
     }
@@ -225,9 +247,9 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Ürün Bilgilerini Düzenle</DialogTitle>
+            <DialogTitle>{t('edit_product_information')}</DialogTitle>
             <DialogDescription>
-              Ürünün temel bilgilerini, fiyatlarını ve görselini buradan güncelleyebilirsiniz.
+             {t('edit_product_description')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -237,7 +259,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ürün Adı</FormLabel>
+                    <FormLabel>{t('product_name')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -250,7 +272,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ürün Kodu</FormLabel>
+                    <FormLabel>{t('product_code')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -264,15 +286,15 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                 name="imageType"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Ürün Görseli</FormLabel>
+                        <FormLabel>{t('product_image')}</FormLabel>
                         <Tabs 
                             value={field.value} 
                             onValueChange={(value) => field.onChange(value as 'upload'|'icon')} 
                             className="w-full"
                         >
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="upload">Fotoğraf Yükle</TabsTrigger>
-                                <TabsTrigger value="icon">İkon Seç</TabsTrigger>
+                                <TabsTrigger value="upload">{t('upload_photo')}</TabsTrigger>
+                                <TabsTrigger value="icon">{t('select_icon')}</TabsTrigger>
                             </TabsList>
                             <TabsContent value="upload" className="mt-4">
                                 <Card>
@@ -280,13 +302,13 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                                         <div className="flex flex-col items-center justify-center gap-4">
                                              <div className="flex h-32 w-32 items-center justify-center rounded-lg border-2 border-dashed">
                                                 {imagePreview ? (
-                                                    <Image src={imagePreview} alt="Yüklenen resim önizlemesi" width={128} height={128} className="h-full w-full rounded-lg object-cover" />
+                                                    <Image src={imagePreview} alt={t('uploaded_image_preview')} width={128} height={128} className="h-full w-full rounded-lg object-cover" />
                                                 ) : (
                                                     <UploadCloud className="h-10 w-10 text-muted-foreground" />
                                                 )}
                                              </div>
                                             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                                {imagePreview ? 'Resmi Değiştir' : 'Resim Seç'}
+                                                {imagePreview ? t('change_image') : t('select_image')}
                                             </Button>
                                             <Input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
                                             <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
@@ -337,7 +359,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                       name="purchasePrice"
                       render={({ field }) => (
                           <FormItem>
-                          <FormLabel>Alış Fiyatı (TL)</FormLabel>
+                          <FormLabel>{t('purchase_price')} ({currency})</FormLabel>
                           <FormControl>
                               <Input type="number" {...field} />
                           </FormControl>
@@ -350,9 +372,9 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                       name="salePrice"
                       render={({ field }) => (
                           <FormItem>
-                          <FormLabel>Satış Fiyatı (TL)</FormLabel>
+                          <FormLabel>{t('sale_price')} ({currency})</FormLabel>
                           <FormControl>
-                              <Input type="number" {...field} placeholder="İsteğe bağlı"/>
+                              <Input type="number" {...field} placeholder={t('optional')}/>
                           </FormControl>
                           <FormMessage />
                           </FormItem>
@@ -364,7 +386,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                 name="criticalThreshold"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Kritik Eşik Değeri</FormLabel>
+                    <FormLabel>{t('critical_threshold_value')}</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -375,9 +397,9 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
               <DialogFooter className="sm:justify-between pt-4">
                 <Button type="button" variant="destructive" onClick={() => setIsAlertOpen(true)}>
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Ürünü Sil
+                    {t('delete_product')}
                 </Button>
-                <Button type="submit">Değişiklikleri Kaydet</Button>
+                <Button type="submit">{t('save_changes')}</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -387,26 +409,26 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+            <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bu işlem geri alınamaz. Bu ürün, bu envanterden kalıcı olarak silinecektir.
+              {t('delete_product_confirmation')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteClick} className="bg-destructive hover:bg-destructive/90">
-                Sil
+                {t('delete')}
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </Footer>
         </AlertDialogContent>
       </AlertDialog>
 
     <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
         <DialogContent className="max-w-2xl">
             <DialogHeader>
-                <DialogTitle>Resmi Kırp</DialogTitle>
+                <DialogTitle>{t('crop_image')}</DialogTitle>
                 <DialogDescription>
-                    Ürün görseli olarak kullanılacak alanı seçin.
+                   {t('crop_image_description')}
                 </DialogDescription>
             </DialogHeader>
             <div className="my-4 flex justify-center">
@@ -430,8 +452,8 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                 )}
             </div>
             <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCropDialogOpen(false)}>İptal</Button>
-                <Button onClick={handleCropComplete}><Crop className="mr-2 h-4 w-4" /> Kırp ve Kullan</Button>
+                <Button variant="outline" onClick={() => setIsCropDialogOpen(false)}>{t('cancel')}</Button>
+                <Button onClick={handleCropComplete}><Crop className="mr-2 h-4 w-4" /> {t('crop_and_use')}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

@@ -37,14 +37,16 @@ import { InventoryIcon } from './inventory-icon';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import { useTranslation } from '@/context/translation-context';
+import { useSettings } from '@/context/settings-context';
 
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Ürün adı en az 2 karakter olmalıdır.' }),
-  code: z.string().min(3, { message: 'Ürün kodu en az 3 karakter olmalıdır.'}),
-  purchasePrice: z.coerce.number().min(0, { message: 'Alış fiyatı 0 veya daha büyük olmalıdır.' }),
-  salePrice: z.coerce.number().min(0, { message: 'Satış fiyatı 0 veya daha büyük olmalıdır.' }).optional().or(z.literal('')),
-  criticalThreshold: z.coerce.number().min(0, { message: 'Kritik eşik 0 veya daha büyük olmalıdır.' }),
+  name: z.string().min(2, { message: 'Product name must be at least 2 characters.' }),
+  code: z.string().min(3, { message: 'Product code must be at least 3 characters.'}),
+  purchasePrice: z.coerce.number().min(0, { message: 'Purchase price must be 0 or greater.' }),
+  salePrice: z.coerce.number().min(0, { message: 'Sale price must be 0 or greater.' }).optional().or(z.literal('')),
+  criticalThreshold: z.coerce.number().min(0, { message: 'Critical threshold must be 0 or greater.' }),
   imageType: z.enum(['upload', 'icon']),
   uploadedImage: z.string().optional(),
   iconId: z.string().optional(),
@@ -54,7 +56,7 @@ const formSchema = z.object({
     if (data.imageType === 'icon') return !!data.iconId;
     return false;
 }, {
-    message: "Lütfen bir ürün görseli seçin veya yükleyin.",
+    message: "Please upload an image or select an icon.",
     path: ["imageType"],
 });
 
@@ -98,6 +100,8 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { t } = useTranslation();
+  const { currency } = useSettings();
 
   // Cropping state
   const [crop, setCrop] = useState<Crop>();
@@ -106,6 +110,24 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
   const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  const translatedFormSchema = z.object({
+      name: z.string().min(2, { message: t('product_name_min_char', { count: 2 }) }),
+      code: z.string().min(3, { message: t('product_code_min_char', { count: 3 }) }),
+      purchasePrice: z.coerce.number().min(0, { message: t('purchase_price_min_value') }),
+      salePrice: z.coerce.number().min(0, { message: t('sale_price_min_value') }).optional().or(z.literal('')),
+      criticalThreshold: z.coerce.number().min(0, { message: t('critical_threshold_min_value') }),
+      imageType: z.enum(['upload', 'icon']),
+      uploadedImage: z.string().optional(),
+      iconId: z.string().optional(),
+      initialStocks: z.record(z.coerce.number().min(0)),
+    }).refine(data => {
+        if (data.imageType === 'upload') return !!data.uploadedImage;
+        if (data.imageType === 'icon') return !!data.iconId;
+        return false;
+    }, {
+        message: t('select_product_image_message'),
+        path: ["imageType"],
+    });
 
   const defaultValues = {
       name: '',
@@ -119,8 +141,8 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
       initialStocks: inventory.locations.reduce((acc, loc) => ({ ...acc, [loc.id]: 0 }), {}),
   };
   
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof translatedFormSchema>>({
+    resolver: zodResolver(translatedFormSchema),
     defaultValues,
   });
 
@@ -148,8 +170,8 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
         } catch (e) {
             console.error(e);
             toast({
-                title: "Resim Kırpılamadı",
-                description: "Resim kırpılırken bir hata oluştu. Lütfen tekrar deneyin.",
+                title: t('image_crop_failed_title'),
+                description: t('image_crop_failed_description'),
                 variant: "destructive"
             });
         }
@@ -176,15 +198,15 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
   };
 
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof translatedFormSchema>) {
     const submissionValues = {
         ...values,
         salePrice: values.salePrice === '' ? undefined : Number(values.salePrice)
     };
     addProductToInventory(inventory.id, submissionValues);
     toast({
-      title: 'Başarılı!',
-      description: `${values.name} ürünü envantere eklendi.`,
+      title: t('success'),
+      description: t('product_added_message', { name: values.name }),
     });
     form.reset(defaultValues);
     setImagePreview(null);
@@ -197,7 +219,7 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
     <>
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle>Ürün Bilgileri</CardTitle>
+        <CardTitle>{t('product_information')}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -208,9 +230,9 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ürün Adı</FormLabel>
+                    <FormLabel>{t('product_name')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Örn: Domates Salçası, Ampul" {...field} />
+                      <Input placeholder={t('product_name_placeholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -221,9 +243,9 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ürün Kodu</FormLabel>
+                    <FormLabel>{t('product_code')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Örn: GID-SL-01" {...field} />
+                      <Input placeholder={t('product_code_placeholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -236,15 +258,15 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 name="imageType"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Ürün Görseli</FormLabel>
+                        <FormLabel>{t('product_image')}</FormLabel>
                         <Tabs 
                             value={field.value} 
                             onValueChange={(value) => field.onChange(value as 'upload'|'icon')} 
                             className="w-full"
                         >
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="upload">Fotoğraf Yükle</TabsTrigger>
-                                <TabsTrigger value="icon">İkon Seç</TabsTrigger>
+                                <TabsTrigger value="upload">{t('upload_photo')}</TabsTrigger>
+                                <TabsTrigger value="icon">{t('select_icon')}</TabsTrigger>
                             </TabsList>
                             <TabsContent value="upload" className="mt-4">
                                 <Card>
@@ -252,16 +274,16 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                                         <div className="flex flex-col items-center justify-center gap-4">
                                              <div className="flex h-32 w-32 items-center justify-center rounded-lg border-2 border-dashed">
                                                 {imagePreview ? (
-                                                    <Image src={imagePreview} alt="Yüklenen resim önizlemesi" width={128} height={128} className="h-full w-full rounded-lg object-cover" />
+                                                    <Image src={imagePreview} alt={t('uploaded_image_preview')} width={128} height={128} className="h-full w-full rounded-lg object-cover" />
                                                 ) : (
                                                     <UploadCloud className="h-10 w-10 text-muted-foreground" />
                                                 )}
                                              </div>
                                             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                                {imagePreview ? 'Resmi Değiştir' : 'Resim Seç'}
+                                                {imagePreview ? t('change_image') : t('select_image')}
                                             </Button>
                                             <Input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-                                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -309,7 +331,7 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 name="purchasePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Alış Fiyatı (TL)</FormLabel>
+                    <FormLabel>{t('purchase_price')} ({currency})</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -322,11 +344,11 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 name="salePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Satış Fiyatı (TL)</FormLabel>
+                    <FormLabel>{t('sale_price')} ({currency})</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} placeholder="İsteğe bağlı" />
+                      <Input type="number" {...field} placeholder={t('optional')} />
                     </FormControl>
-                     <FormDescription>Boş bırakılabilir.</FormDescription>
+                     <FormDescription>{t('can_be_left_empty')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -336,11 +358,11 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 name="criticalThreshold"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Kritik Eşik</FormLabel>
+                    <FormLabel>{t('critical_threshold')}</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
-                    <FormDescription>Stok uyarısı için.</FormDescription>
+                    <FormDescription>{t('for_stock_alert')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -348,7 +370,7 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
             </div>
             
             <div>
-                <h3 className="mb-4 text-lg font-medium">Başlangıç Stokları</h3>
+                <h3 className="mb-4 text-lg font-medium">{t('initial_stocks')}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     {inventory.locations.map(loc => (
                        <FormField
@@ -369,7 +391,7 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 </div>
             </div>
 
-            <Button type="submit" className="w-full md:w-auto" size="lg">Ürünü Kaydet</Button>
+            <Button type="submit" className="w-full md:w-auto" size="lg">{t('save_product')}</Button>
           </form>
         </Form>
       </CardContent>
@@ -378,9 +400,9 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
     <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
         <DialogContent className="max-w-2xl">
             <DialogHeader>
-                <DialogTitle>Resmi Kırp</DialogTitle>
+                <DialogTitle>{t('crop_image')}</DialogTitle>
                 <DialogDescription>
-                    Ürün görseli olarak kullanılacak alanı seçin.
+                    {t('crop_image_description')}
                 </DialogDescription>
             </DialogHeader>
             <div className="my-4 flex justify-center">
@@ -404,8 +426,8 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                 )}
             </div>
             <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCropDialogOpen(false)}>İptal</Button>
-                <Button onClick={handleCropComplete}><Crop className="mr-2 h-4 w-4" /> Kırp ve Kullan</Button>
+                <Button variant="outline" onClick={() => setIsCropDialogOpen(false)}>{t('cancel')}</Button>
+                <Button onClick={handleCropComplete}><Crop className="mr-2 h-4 w-4" /> {t('crop_and_use')}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

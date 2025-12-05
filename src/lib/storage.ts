@@ -10,7 +10,7 @@ import {
 } from './data';
 import { PlaceHolderImages } from './placeholder-images';
 
-const APP_DATA_STORAGE_KEY = 'stockpilot_app_data';
+const APP_DATA_STORAGE_KEY = 'stockpilot_app_data_v2';
 let appData: AppData | null = null;
 
 // =================================================================
@@ -20,17 +20,17 @@ let appData: AppData | null = null;
 const getInitialData = (): AppData => {
   const defaultInventoryId = 'inv_1';
   const defaultLocations: Location[] = [
-    { id: 'loc_1', name: 'Mutfak' },
-    { id: 'loc_2', name: 'Kiler' },
-    { id: 'loc_3', name: 'Garaj' },
+    { id: 'loc_1', name: 'Kitchen' },
+    { id: 'loc_2', name: 'Pantry' },
+    { id: 'loc_3', name: 'Garage' },
   ];
 
   const initialProducts: Product[] = [
-      { id: 'prod_1', name: 'Makarna (500g)', code: 'GID-MKR-01', image: { ...PlaceHolderImages.find(p=>p.id === 'pasta-noodles')!, iconId: undefined }, purchasePrice: 20, salePrice: 30 },
-      { id: 'prod_2', name: 'Domates Salçası', code: 'GID-SLC-02', image: { ...PlaceHolderImages.find(p=>p.id === 'canned-goods')!, iconId: undefined }, purchasePrice: 35, salePrice: 50 },
-      { id: 'prod_3', name: 'Pirinç (1kg)', code: 'GID-PRN-03', image: { ...PlaceHolderImages.find(p=>p.id === 'rice-bag')!, iconId: undefined }, purchasePrice: 50, salePrice: 75 },
-      { id: 'prod_4', name: 'LED Ampul (9W)', code: 'EV-AMP-04', image: { ...PlaceHolderImages.find(p=>p.id === 'light-bulbs')!, iconId: undefined }, purchasePrice: 40, salePrice: 60 },
-      { id: 'prod_5', name: 'Tuvalet Kağıdı (12li)', code: 'TMZ-TK-05', image: { ...PlaceHolderImages.find(p=>p.id === 'toilet-paper')!, iconId: undefined }, purchasePrice: 100, salePrice: 150 },
+      { id: 'prod_1', name: 'Pasta (500g)', code: 'FOOD-PST-01', image: { ...PlaceHolderImages.find(p=>p.id === 'pasta-noodles')!, iconId: undefined }, purchasePrice: 2, salePrice: 3.5 },
+      { id: 'prod_2', name: 'Tomato Sauce', code: 'FOOD-SAU-02', image: { ...PlaceHolderImages.find(p=>p.id === 'canned-goods')!, iconId: undefined }, purchasePrice: 1.5, salePrice: 2.5 },
+      { id: 'prod_3', name: 'Rice (1kg)', code: 'FOOD-RIC-03', image: { ...PlaceHolderImages.find(p=>p.id === 'rice-bag')!, iconId: undefined }, purchasePrice: 3, salePrice: 5 },
+      { id: 'prod_4', name: 'LED Bulb (9W)', code: 'HOME-BUL-04', image: { ...PlaceHolderImages.find(p=>p.id === 'light-bulbs')!, iconId: undefined }, purchasePrice: 4, salePrice: 7 },
+      { id: 'prod_5', name: 'Toilet Paper (12 pack)', code: 'HOME-TP-05', image: { ...PlaceHolderImages.find(p=>p.id === 'toilet-paper')!, iconId: undefined }, purchasePrice: 8, salePrice: 12 },
   ];
   
   const productStocks: ProductStock[] = [
@@ -43,7 +43,7 @@ const getInitialData = (): AppData => {
 
   const defaultInventory: Inventory = {
     id: defaultInventoryId,
-    name: 'Ev Envanterim',
+    name: 'My Home Inventory',
     iconId: 'home',
     locations: defaultLocations,
     productIds: initialProducts.map(p => p.id),
@@ -65,7 +65,7 @@ const getInitialData = (): AppData => {
 
 const initializeStorage = (): AppData => {
     if (typeof window === 'undefined') {
-        return getInitialData(); // Sunucuda sadece başlangıç verisi döndür
+        return getInitialData(); // Return initial data on the server
     }
     try {
         const storedData = localStorage.getItem(APP_DATA_STORAGE_KEY);
@@ -280,14 +280,14 @@ export const addProductToInventory = (inventoryId: string, values: AddProductVal
     if (values.imageType === 'upload' && values.uploadedImage) {
         productImage = {
             imageUrl: values.uploadedImage,
-            description: 'Kullanıcının yüklediği resim',
+            description: 'User uploaded image',
             imageHint: 'uploaded',
             iconId: undefined,
         };
     } else if (values.imageType === 'icon' && values.iconId) {
         productImage = {
             imageUrl: '',
-            description: `${values.iconId} ikonu`,
+            description: `${values.iconId} icon`,
             imageHint: 'icon',
             iconId: values.iconId,
         };
@@ -295,7 +295,7 @@ export const addProductToInventory = (inventoryId: string, values: AddProductVal
         // Fallback to a default icon if no image is provided
         productImage = {
             imageUrl: '',
-            description: `package ikonu`,
+            description: `package icon`,
             imageHint: 'icon',
             iconId: 'package',
         };
@@ -366,14 +366,14 @@ export const updateProductDetails = (productId: string, updatedDetails: UpdatePr
         if (updatedDetails.imageType === 'upload' && updatedDetails.uploadedImage) {
             productImage = {
                 imageUrl: updatedDetails.uploadedImage,
-                description: 'Kullanıcının yüklediği resim',
+                description: 'User uploaded image',
                 imageHint: 'uploaded',
                 iconId: undefined,
             };
         } else if (updatedDetails.imageType === 'icon' && updatedDetails.iconId) {
             productImage = {
                 imageUrl: '',
-                description: `${updatedDetails.iconId} ikonu`,
+                description: `${updatedDetails.iconId} icon`,
                 imageHint: 'icon',
                 iconId: updatedDetails.iconId,
             };

@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import type { Product, Inventory, ProductStock } from '@/lib/data';
 import ProductEditForm from './product-edit-form';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from '@/context/translation-context';
 
 
 type FullProductInfo = {
@@ -24,6 +25,7 @@ export default function ProductDetailClient({ inventoryId, productId }: { invent
   const [data, setData] = useState<FullProductInfo | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const foundData = getProductWithStock(inventoryId, productId);
@@ -43,8 +45,8 @@ export default function ProductDetailClient({ inventoryId, productId }: { invent
     if (data) {
         deleteProductFromInventory(data.inventory.id, data.product.id);
         toast({
-            title: "Ürün Silindi",
-            description: `${data.product.name} envanterden kalıcı olarak silindi.`,
+            title: t('product_deleted'),
+            description: t('product_deleted_description', { name: data.product.name }),
         });
         router.push(`/inventories/${data.inventory.id}`);
         router.refresh();
@@ -84,14 +86,14 @@ export default function ProductDetailClient({ inventoryId, productId }: { invent
           <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
             <Link href={`/inventories/${inventory.id}`}>
               <ArrowLeft className="h-4 w-4" />
-              <span className="sr-only">Geri</span>
+              <span className="sr-only">{t('back')}</span>
             </Link>
           </Button>
            <h1 className="truncate text-xl font-semibold">{product.name}</h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}>
             <Pencil className="mr-2 h-4 w-4" />
-            Düzenle
+            {t('edit')}
         </Button>
       </header>
       <main className="flex-1 overflow-auto">

@@ -18,10 +18,12 @@ import { toast } from '@/hooks/use-toast';
 import { Share2 } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from './ui/separator';
+import { useTranslation } from '@/context/translation-context';
 
 export default function OrderList({ inventory }: { inventory: Inventory}) {
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
   const [productsWithStock, setProductsWithStock] = useState<{product: Product, stock: ProductStock}[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setProductsWithStock(getProductsForInventory(inventory.id));
@@ -35,43 +37,43 @@ export default function OrderList({ inventory }: { inventory: Inventory}) {
   };
 
   const handleShare = async () => {
-    let orderText = 'Sipariş Listesi:\n-----------------\n';
+    let orderText = `${t('order_list')}:\n-----------------\n`;
     let hasItems = false;
     
     for (const { product } of productsWithStock) {
       const quantity = orderQuantities[product.id];
       if (quantity && quantity > 0) {
-        orderText += `(${product.code}) ${product.name}: ${quantity} adet\n`;
+        orderText += `(${product.code}) ${product.name}: ${quantity} ${t('units')}\n`;
         hasItems = true;
       }
     }
 
     if (!hasItems) {
       toast({
-        title: 'Boş Liste',
-        description: 'Paylaşmak için lütfen en az bir ürüne sipariş adedi girin.',
+        title: t('empty_list'),
+        description: t('empty_order_list_description'),
         variant: 'destructive'
       });
       return;
     }
 
-    orderText += `\nOluşturulma Tarihi: ${new Date().toLocaleDateString('tr-TR')}`;
+    orderText += `\n${t('creation_date')}: ${new Date().toLocaleDateString(t('locale_code'))}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'StockPilot Sipariş Listesi',
+          title: t('app_name') + ' ' + t('order_list'),
           text: orderText,
         });
         toast({
-          title: 'Başarılı!',
-          description: 'Sipariş listesi paylaşıldı.',
+          title: t('success'),
+          description: t('order_list_shared'),
         });
       } catch (error) {
-        console.error('Paylaşım hatası:', error);
+        console.error('Share error:', error);
         toast({
-          title: 'Hata',
-          description: 'Liste paylaşılırken bir sorun oluştu.',
+          title: t('error'),
+          description: t('order_list_share_error'),
           variant: 'destructive',
         });
       }
@@ -79,13 +81,13 @@ export default function OrderList({ inventory }: { inventory: Inventory}) {
       try {
         await navigator.clipboard.writeText(orderText);
         toast({
-          title: 'Panoya Kopyalandı',
-          description: 'Tarayıcınız paylaşımı desteklemiyor. Sipariş listesi panoya kopyalandı.',
+          title: t('copied_to_clipboard'),
+          description: t('share_not_supported_clipboard'),
         });
       } catch(err) {
         toast({
-            title: 'Hata',
-            description: 'Liste panoya kopyalanamadı.',
+            title: t('error'),
+            description: t('clipboard_copy_error'),
             variant: 'destructive'
         })
       }
@@ -95,19 +97,19 @@ export default function OrderList({ inventory }: { inventory: Inventory}) {
   return (
     <Card className="mx-auto max-w-4xl">
       <CardHeader>
-        <CardTitle>Sipariş Listesi Oluşturma</CardTitle>
-        <CardDescription>Tedarikçilerinize göndermek için sipariş listenizi hazırlayın. Sadece adedini girdiğiniz ürünler listeye eklenecektir.</CardDescription>
+        <CardTitle>{t('create_order_list')}</CardTitle>
+        <CardDescription>{t('create_order_list_description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="hidden sm:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80px]">Görsel</TableHead>
-                  <TableHead>Ürün Adı</TableHead>
-                  <TableHead>Ürün Kodu</TableHead>
-                  <TableHead className="text-center">Mevcut Stok</TableHead>
-                  <TableHead className="w-[120px] text-right">Sipariş Adedi</TableHead>
+                  <TableHead className="w-[80px]">{t('image')}</TableHead>
+                  <TableHead>{t('product_name')}</TableHead>
+                  <TableHead>{t('product_code')}</TableHead>
+                  <TableHead className="text-center">{t('current_stock')}</TableHead>
+                  <TableHead className="w-[120px] text-right">{t('order_quantity')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -157,12 +159,12 @@ export default function OrderList({ inventory }: { inventory: Inventory}) {
                     <div className="flex-1">
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm font-mono text-muted-foreground">{product.code}</p>
-                        <p className="text-sm text-muted-foreground mt-1">Mevcut Stok: {getTotalStock(stock, inventory.locations)}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{t('current_stock')}: {getTotalStock(stock, inventory.locations)}</p>
                     </div>
                 </div>
                 <Separator className="my-3" />
                 <div className="flex items-center justify-between">
-                    <label htmlFor={`order-${product.id}`} className="text-sm font-medium">Sipariş Adedi</label>
+                    <label htmlFor={`order-${product.id}`} className="text-sm font-medium">{t('order_quantity')}</label>
                     <Input
                         id={`order-${product.id}`}
                         type="number"
@@ -180,7 +182,7 @@ export default function OrderList({ inventory }: { inventory: Inventory}) {
       <CardFooter>
         <Button onClick={handleShare} size="lg" className="w-full md:w-auto ml-auto">
           <Share2 className="mr-2 h-4 w-4" />
-          Listeyi Paylaş
+          {t('share_list')}
         </Button>
       </CardFooter>
     </Card>

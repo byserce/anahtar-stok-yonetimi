@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Warehouse, Store, Car, Truck, Home, ShoppingBasket, Package } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { InventoryIcon } from './inventory-icon';
+import { useTranslation } from '@/context/translation-context';
 
 type ProductCardProps = {
   product: Product;
@@ -48,6 +49,7 @@ export default function ProductCard({ product, inventory, stock }: ProductCardPr
   const isCritical = totalStock <= criticalThreshold;
   const hasImage = product.image.imageUrl && product.image.imageUrl.startsWith('http');
   const hasDataUrl = product.image.imageUrl && product.image.imageUrl.startsWith('data:');
+  const { t } = useTranslation();
 
   return (
     <Link href={`/inventories/${inventory.id}/product/${product.id}`} className="group flex flex-col">
@@ -75,7 +77,7 @@ export default function ProductCard({ product, inventory, stock }: ProductCardPr
           {isCritical && (
             <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-destructive/90 px-2 py-1 text-[10px] font-bold text-destructive-foreground">
               <AlertTriangle className="h-3 w-3" />
-              <span>Kritik</span>
+              <span>{t('critical')}</span>
             </div>
           )}
         </CardHeader>
@@ -84,7 +86,7 @@ export default function ProductCard({ product, inventory, stock }: ProductCardPr
             {product.name}
           </CardTitle>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Toplam Stok:</span>
+            <span>{t('total_stock')}:</span>
             <Badge variant={isCritical ? 'destructive' : 'secondary'} className="text-sm font-bold">
               {totalStock}
             </Badge>

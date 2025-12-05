@@ -31,10 +31,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { InventoryIcon } from '@/components/inventory-icon';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '@/context/translation-context';
 
 export default function InventoryDetailPage() {
   const params = useParams();
   const inventoryId = params.id as string;
+  const { t } = useTranslation();
 
   const [inventory, setInventory] = useState<Inventory | null>(null);
   const [products, setProducts] = useState<{ product: Product, stock: ProductStock }[]>([]);
@@ -132,7 +134,7 @@ export default function InventoryDetailPage() {
             <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                 <Link href="/">
                     <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Geri</span>
+                    <span className="sr-only">{t('back')}</span>
                 </Link>
             </Button>
              <div className="flex items-center gap-3">
@@ -149,19 +151,19 @@ export default function InventoryDetailPage() {
             {editMode ? (
               <>
                 <Check className="mr-2 h-4 w-4" />
-                Bitti
+                {t('done')}
               </>
             ) : (
               <>
                 <GripVertical className="mr-2 h-4 w-4" />
-                Sırala
+                {t('sort')}
               </>
             )}
           </Button>
           <Button variant="outline" size="icon" asChild className="h-9 w-9">
               <Link href={`/inventories/${inventoryId}/edit`}>
                   <Settings className="h-4 w-4" />
-                  <span className="sr-only">Envanteri Düzenle</span>
+                  <span className="sr-only">{t('edit_inventory')}</span>
               </Link>
           </Button>
         </div>

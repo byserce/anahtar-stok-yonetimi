@@ -24,21 +24,31 @@ import { inventoryIcons } from '@/lib/inventory-icons';
 import { InventoryIcon } from '@/components/inventory-icon';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useTranslation } from '@/context/translation-context';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Envanter adı en az 2 karakter olmalıdır.' }),
-  iconId: z.string().min(1, { message: 'Lütfen bir envanter ikonu seçin.' }),
-  locations: z.array(z.object({ name: z.string().min(1, { message: 'Konum adı boş olamaz.' }) })).min(1, { message: 'En az bir konum eklemelisiniz.' }).max(3, { message: 'En fazla 3 konum ekleyebilirsiniz.' }),
+  name: z.string().min(2, { message: 'Inventory name must be at least 2 characters.' }),
+  iconId: z.string().min(1, { message: 'Please select an inventory icon.' }),
+  locations: z.array(z.object({ name: z.string().min(1, { message: 'Location name cannot be empty.' }) })).min(1, { message: 'You must add at least one location.' }).max(3, { message: 'You can add a maximum of 3 locations.' }),
 });
 
 export default function NewInventoryPage() {
   const router = useRouter();
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const { t } = useTranslation();
+
+  const translatedFormSchema = z.object({
+    name: z.string().min(2, { message: t('inventory_name_min_char', { count: 2 }) }),
+    iconId: z.string().min(1, { message: t('select_inventory_icon_message') }),
+    locations: z.array(z.object({ name: z.string().min(1, { message: t('location_name_empty_message') }) })).min(1, { message: t('at_least_one_location_message') }).max(3, { message: t('max_locations_message', { count: 3 }) }),
+  });
+
+
+  const form = useForm<z.infer<typeof translatedFormSchema>>({
+    resolver: zodResolver(translatedFormSchema),
     defaultValues: {
       name: '',
       iconId: inventoryIcons[0].id,
-      locations: [{ name: 'Mutfak' }, { name: 'Kiler' }],
+      locations: [{ name: t('default_location_1') }, { name: t('default_location_2') }],
     },
   });
 
@@ -47,11 +57,11 @@ export default function NewInventoryPage() {
     name: 'locations',
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof translatedFormSchema>) {
     const newInventory = createInventory(values.name, values.iconId, values.locations);
     toast({
-      title: 'Başarılı!',
-      description: `${values.name} envanteri oluşturuldu.`,
+      title: t('success'),
+      description: t('inventory_created_message', { name: values.name }),
     });
     router.push(`/inventories/${newInventory.id}`);
   }
@@ -62,16 +72,16 @@ export default function NewInventoryPage() {
             <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                 <Link href="/">
                     <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Geri</span>
+                    <span className="sr-only">{t('back')}</span>
                 </Link>
             </Button>
-            <h1 className="text-xl font-semibold">Yeni Envanter Oluştur</h1>
+            <h1 className="text-xl font-semibold">{t('create_new_inventory')}</h1>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">
             <Card className="mx-auto max-w-2xl">
                 <CardHeader>
-                    <CardTitle>Envanter Detayları</CardTitle>
-                    <CardDescription>Yeni envanterinize bir isim ve ikon seçin, ardından stok tutmak istediğiniz konumları belirleyin.</CardDescription>
+                    <CardTitle>{t('inventory_details')}</CardTitle>
+                    <CardDescription>{t('new_inventory_description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -81,9 +91,9 @@ export default function NewInventoryPage() {
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Envanter Adı</FormLabel>
+                                    <FormLabel>{t('inventory_name')}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Örn: Ev, Ofis, Küçük İşletme" {...field} />
+                                        <Input placeholder={t('inventory_name_placeholder')} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -94,7 +104,7 @@ export default function NewInventoryPage() {
                             name="iconId"
                             render={({ field }) => (
                                 <FormItem className="space-y-3">
-                                <FormLabel>Envanter İkonu</FormLabel>
+                                <FormLabel>{t('inventory_icon')}</FormLabel>
                                 <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
@@ -119,8 +129,8 @@ export default function NewInventoryPage() {
                         />
                         
                         <div>
-                            <FormLabel>Konumlar</FormLabel>
-                            <FormDescription className="mb-4">Ürün stoklarını takip edeceğiniz yerler (en fazla 3 adet).</FormDescription>
+                            <FormLabel>{t('locations')}</FormLabel>
+                            <FormDescription className="mb-4">{t('locations_description', { count: 3 })}</FormDescription>
                             <div className="space-y-3">
                                 {fields.map((field, index) => (
                                     <FormField
@@ -130,7 +140,7 @@ export default function NewInventoryPage() {
                                         render={({ field }) => (
                                         <FormItem className="flex items-center gap-2">
                                             <FormControl>
-                                                <Input {...field} placeholder={`Konum ${index + 1}`} />
+                                                <Input {...field} placeholder={`${t('location')} ${index + 1}`} />
                                             </FormControl>
                                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
                                                 <X className="h-4 w-4" />
@@ -150,12 +160,12 @@ export default function NewInventoryPage() {
                                 disabled={fields.length >= 3}
                                 >
                                 <Plus className="mr-2 h-4 w-4" />
-                                Konum Ekle
+                                {t('add_location')}
                             </Button>
                         </div>
                         
 
-                        <Button type="submit" className="w-full md:w-auto" size="lg">Envanteri Oluştur</Button>
+                        <Button type="submit" className="w-full md:w-auto" size="lg">{t('create_inventory')}</Button>
                     </form>
                     </Form>
                 </CardContent>

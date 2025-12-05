@@ -10,6 +10,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from './ui/button';
 import { InventoryIcon } from './inventory-icon';
+import { useTranslation } from '@/context/translation-context';
 
 type SortableProductCardProps = {
   product: Product;
@@ -21,6 +22,7 @@ type SortableProductCardProps = {
 };
 
 export function SortableProductCard({ product, inventory, stock, onMove, isFirst, isLast }: SortableProductCardProps) {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -74,7 +76,7 @@ export function SortableProductCard({ product, inventory, stock, onMove, isFirst
                     {product.name}
                 </p>
                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                    <span>Toplam Stok:</span>
+                    <span>{t('total_stock')}:</span>
                     <Badge variant={isCritical ? 'destructive' : 'secondary'} className="text-sm font-bold">
                     {totalStock}
                     </Badge>
@@ -87,7 +89,7 @@ export function SortableProductCard({ product, inventory, stock, onMove, isFirst
                     className="h-7 w-7" 
                     onClick={() => onMove(product.id, 'up')}
                     disabled={isFirst}
-                    aria-label="Yukarı taşı"
+                    aria-label={t('move_up')}
                 >
                     <ArrowUp className="h-4 w-4" />
                 </Button>
@@ -97,7 +99,7 @@ export function SortableProductCard({ product, inventory, stock, onMove, isFirst
                     className="h-7 w-7" 
                     onClick={() => onMove(product.id, 'down')}
                     disabled={isLast}
-                    aria-label="Aşağı taşı"
+                    aria-label={t('move_down')}
                 >
                     <ArrowDown className="h-4 w-4" />
                 </Button>

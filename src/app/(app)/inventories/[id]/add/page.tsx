@@ -6,11 +6,13 @@ import { notFound, useParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useTranslation } from '@/context/translation-context';
 
 export default function AddProductToInventoryPage() {
     const params = useParams();
     const inventoryId = params.id as string;
     const inventory = getInventoryById(inventoryId);
+    const { t } = useTranslation();
 
     if (!inventory) {
         notFound();
@@ -22,10 +24,10 @@ export default function AddProductToInventoryPage() {
                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                     <Link href={`/inventories/${inventoryId}`}>
                         <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Geri</span>
+                        <span className="sr-only">{t('back')}</span>
                     </Link>
                 </Button>
-                <h1 className="text-xl font-semibold">Yeni Ürün Ekle</h1>
+                <h1 className="text-xl font-semibold">{t('add_new_product')}</h1>
             </header>
             <main className="flex-1 overflow-auto p-4 md:p-6">
                 <AddProductForm inventory={inventory} />

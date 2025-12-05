@@ -1,7 +1,8 @@
 'use client';
 
 import ProductDetailClient from '@/components/product-detail-client';
-import { useParams } from 'next/navigation'
+import { useParams } from 'next/navigation';
+import { SettingsProvider } from '@/context/settings-context';
 
 
 export default function ProductDetailPage() {
@@ -9,5 +10,9 @@ export default function ProductDetailPage() {
   const inventoryId = params.id as string;
   const productId = params.productId as string;
 
-  return <ProductDetailClient inventoryId={inventoryId} productId={productId} />;
+  return (
+    <SettingsProvider>
+      <ProductDetailClient inventoryId={inventoryId} productId={productId} />
+    </SettingsProvider>
+  );
 }

@@ -5,19 +5,21 @@ import { usePathname } from 'next/navigation';
 import { LayoutGrid, PlusCircle, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useParams } from 'next/navigation'
+import { useTranslation } from '@/context/translation-context';
 
 
 export default function BottomNavbar() {
   const pathname = usePathname();
   const params = useParams();
   const inventoryId = params.id as string;
+  const { t } = useTranslation();
   
   if (!inventoryId) return null;
 
   const menuItems = [
-    { href: `/inventories/${inventoryId}`, label: 'Envanter', icon: LayoutGrid },
-    { href: `/inventories/${inventoryId}/add`, label: 'Ürün Ekle', icon: PlusCircle },
-    { href: `/inventories/${inventoryId}/order`, label: 'Sipariş', icon: ShoppingCart },
+    { href: `/inventories/${inventoryId}`, label: t('inventory'), icon: LayoutGrid },
+    { href: `/inventories/${inventoryId}/add`, label: t('add_product'), icon: PlusCircle },
+    { href: `/inventories/${inventoryId}/order`, label: t('order'), icon: ShoppingCart },
   ];
 
   return (
