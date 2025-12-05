@@ -264,9 +264,8 @@ type AddProductValues = {
   criticalThreshold: number;
   purchasePrice: number;
   salePrice?: number;
-  imageType: 'upload' | 'library' | 'icon';
+  imageType: 'upload' | 'icon';
   uploadedImage?: string;
-  libraryImageId?: string;
   iconId?: string;
   initialStocks: Record<string, number>;
 };
@@ -285,14 +284,6 @@ export const addProductToInventory = (inventoryId: string, values: AddProductVal
             imageHint: 'uploaded',
             iconId: undefined,
         };
-    } else if (values.imageType === 'library' && values.libraryImageId) {
-        const libImage = PlaceHolderImages.find(p => p.id === values.libraryImageId) || PlaceHolderImages[0];
-        productImage = {
-            imageUrl: libImage.imageUrl,
-            description: libImage.description,
-            imageHint: libImage.imageHint,
-            iconId: undefined,
-        };
     } else if (values.imageType === 'icon' && values.iconId) {
         productImage = {
             imageUrl: '',
@@ -301,13 +292,12 @@ export const addProductToInventory = (inventoryId: string, values: AddProductVal
             iconId: values.iconId,
         };
     } else {
-        // Fallback
-        const libImage = PlaceHolderImages[0];
+        // Fallback to a default icon if no image is provided
         productImage = {
-            imageUrl: libImage.imageUrl,
-            description: libImage.description,
-            imageHint: libImage.imageHint,
-            iconId: undefined,
+            imageUrl: '',
+            description: `package ikonu`,
+            imageHint: 'icon',
+            iconId: 'package',
         };
     }
 
@@ -355,9 +345,8 @@ type UpdateProductDetails = {
     criticalThreshold: number;
     purchasePrice: number;
     salePrice?: number;
-    imageType: 'upload' | 'library' | 'icon';
+    imageType: 'upload' | 'icon';
     uploadedImage?: string;
-    libraryImageId?: string;
     iconId?: string;
 }
 
@@ -379,14 +368,6 @@ export const updateProductDetails = (productId: string, updatedDetails: UpdatePr
                 imageUrl: updatedDetails.uploadedImage,
                 description: 'Kullanıcının yüklediği resim',
                 imageHint: 'uploaded',
-                iconId: undefined,
-            };
-        } else if (updatedDetails.imageType === 'library' && updatedDetails.libraryImageId) {
-            const libImage = PlaceHolderImages.find(p => p.id === updatedDetails.libraryImageId) || PlaceHolderImages[0];
-            productImage = {
-                imageUrl: libImage.imageUrl,
-                description: libImage.description,
-                imageHint: libImage.imageHint,
                 iconId: undefined,
             };
         } else if (updatedDetails.imageType === 'icon' && updatedDetails.iconId) {

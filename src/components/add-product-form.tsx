@@ -30,7 +30,6 @@ import Image from 'next/image';
 import { addProductToInventory } from '@/lib/storage';
 import { type Inventory } from '@/lib/data';
 import { useRouter } from 'next/navigation';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { inventoryIcons } from '@/lib/inventory-icons';
@@ -46,14 +45,12 @@ const formSchema = z.object({
   purchasePrice: z.coerce.number().min(0, { message: 'Alış fiyatı 0 veya daha büyük olmalıdır.' }),
   salePrice: z.coerce.number().min(0, { message: 'Satış fiyatı 0 veya daha büyük olmalıdır.' }).optional().or(z.literal('')),
   criticalThreshold: z.coerce.number().min(0, { message: 'Kritik eşik 0 veya daha büyük olmalıdır.' }),
-  imageType: z.enum(['upload', 'library', 'icon']),
+  imageType: z.enum(['upload', 'icon']),
   uploadedImage: z.string().optional(),
-  libraryImageId: z.string().optional(),
   iconId: z.string().optional(),
   initialStocks: z.record(z.coerce.number().min(0)),
 }).refine(data => {
     if (data.imageType === 'upload') return !!data.uploadedImage;
-    if (data.imageType === 'library') return !!data.libraryImageId;
     if (data.imageType === 'icon') return !!data.iconId;
     return false;
 }, {
@@ -116,10 +113,9 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
       purchasePrice: 0,
       salePrice: '' as number | '',
       criticalThreshold: 5,
-      imageType: 'library' as const,
+      imageType: 'upload' as const,
       uploadedImage: '',
-      libraryImageId: PlaceHolderImages[0].id,
-      iconId: '',
+      iconId: inventoryIcons[0].id,
       initialStocks: inventory.locations.reduce((acc, loc) => ({ ...acc, [loc.id]: 0 }), {}),
   };
   
@@ -243,12 +239,11 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                         <FormLabel>Ürün Görseli</FormLabel>
                         <Tabs 
                             value={field.value} 
-                            onValueChange={(value) => field.onChange(value as 'upload'|'library'|'icon')} 
+                            onValueChange={(value) => field.onChange(value as 'upload'|'icon')} 
                             className="w-full"
                         >
-                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="upload">Fotoğraf Yükle</TabsTrigger>
-                                <TabsTrigger value="library">Kütüphane</TabsTrigger>
                                 <TabsTrigger value="icon">İkon Seç</TabsTrigger>
                             </TabsList>
                             <TabsContent value="upload" className="mt-4">
@@ -270,38 +265,6 @@ export default function AddProductForm({ inventory }: { inventory: Inventory}) {
                                         </div>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
-                            <TabsContent value="library" className="mt-4">
-                               <FormField
-                                    control={form.control}
-                                    name="libraryImageId"
-                                    render={({ field: radioField }) => (
-                                        <FormItem>
-                                            <RadioGroup 
-                                                onValueChange={(value) => {
-                                                  radioField.onChange(value);
-                                                  form.setValue('imageType', 'library');
-                                                }}
-                                                defaultValue={radioField.value}
-                                                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
-                                            >
-                                                {PlaceHolderImages.map(img => (
-                                                    <FormItem key={img.id}>
-                                                        <FormControl>
-                                                            <RadioGroupItem value={img.id} id={`lib-${img.id}`} className="sr-only" />
-                                                        </FormControl>
-                                                        <FormLabel htmlFor={`lib-${img.id}`}>
-                                                            <div className={cn("cursor-pointer overflow-hidden rounded-md border-2 border-muted bg-popover transition-all hover:border-primary", radioField.value === img.id && "border-primary ring-2 ring-primary")}>
-                                                                <Image src={img.imageUrl} alt={img.description} width={200} height={150} className="aspect-video w-full object-cover" />
-                                                                <p className="p-2 text-xs font-medium truncate">{img.description}</p>
-                                                            </div>
-                                                        </FormLabel>
-                                                    </FormItem>
-                                                ))}
-                                            </RadioGroup>
-                                        </FormItem>
-                                    )}
-                                />
                             </TabsContent>
                             <TabsContent value="icon" className="mt-4">
                                 <FormField

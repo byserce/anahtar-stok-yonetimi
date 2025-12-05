@@ -29,7 +29,6 @@ import { updateProductDetails } from '@/lib/storage';
 import { Trash2, UploadCloud, Crop } from 'lucide-react';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { inventoryIcons } from '@/lib/inventory-icons';
@@ -54,13 +53,11 @@ const formSchema = z.object({
   purchasePrice: z.coerce.number().min(0, { message: 'Alış fiyatı 0 veya daha büyük olmalıdır.' }),
   salePrice: z.coerce.number().min(0.01, { message: 'Satış fiyatı 0 veya daha büyük olmalıdır.' }).optional().or(z.literal('')),
   criticalThreshold: z.coerce.number().min(0, { message: 'Kritik eşik 0 veya daha büyük olmalıdır.' }),
-  imageType: z.enum(['upload', 'library', 'icon']),
+  imageType: z.enum(['upload', 'icon']),
   uploadedImage: z.string().optional(),
-  libraryImageId: z.string().optional(),
   iconId: z.string().optional(),
 }).refine(data => {
     if (data.imageType === 'upload') return !!data.uploadedImage;
-    if (data.imageType === 'library') return !!data.libraryImageId;
     if (data.imageType === 'icon') return !!data.iconId;
     return false;
 }, {
@@ -125,8 +122,7 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
   const imgRef = useRef<HTMLImageElement>(null);
   
   const isIcon = !!product.image.iconId;
-  const isLibraryImage = PlaceHolderImages.some(p => p.imageUrl === product.image.imageUrl);
-  const initialImageType = isIcon ? 'icon' : (isLibraryImage ? 'library' : 'upload');
+  const initialImageType = isIcon ? 'icon' : 'upload';
 
   const [imagePreview, setImagePreview] = useState<string | null>(initialImageType === 'upload' ? product.image.imageUrl : null);
   
@@ -140,7 +136,6 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
       criticalThreshold: inventory.criticalThresholds[product.id] || 0,
       imageType: initialImageType,
       iconId: product.image.iconId,
-      libraryImageId: isLibraryImage ? PlaceHolderImages.find(p => p.imageUrl === product.image.imageUrl)?.id : PlaceHolderImages[0].id,
       uploadedImage: initialImageType === 'upload' ? product.image.imageUrl : undefined,
     },
   });
@@ -272,12 +267,11 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                         <FormLabel>Ürün Görseli</FormLabel>
                         <Tabs 
                             value={field.value} 
-                            onValueChange={(value) => field.onChange(value as 'upload'|'library'|'icon')} 
+                            onValueChange={(value) => field.onChange(value as 'upload'|'icon')} 
                             className="w-full"
                         >
-                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="upload">Fotoğraf Yükle</TabsTrigger>
-                                <TabsTrigger value="library">Kütüphane</TabsTrigger>
                                 <TabsTrigger value="icon">İkon Seç</TabsTrigger>
                             </TabsList>
                             <TabsContent value="upload" className="mt-4">
@@ -299,38 +293,6 @@ export default function ProductEditForm({ product, inventory, open, onOpenChange
                                         </div>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
-                            <TabsContent value="library" className="mt-4">
-                               <FormField
-                                    control={form.control}
-                                    name="libraryImageId"
-                                    render={({ field: radioField }) => (
-                                        <FormItem>
-                                            <RadioGroup 
-                                                onValueChange={(value) => {
-                                                  radioField.onChange(value);
-                                                  form.setValue('imageType', 'library');
-                                                }}
-                                                defaultValue={radioField.value}
-                                                className="grid grid-cols-2 sm:grid-cols-3 gap-4"
-                                            >
-                                                {PlaceHolderImages.map(img => (
-                                                    <FormItem key={img.id}>
-                                                        <FormControl>
-                                                            <RadioGroupItem value={img.id} id={`edit-lib-${img.id}`} className="sr-only" />
-                                                        </FormControl>
-                                                        <FormLabel htmlFor={`edit-lib-${img.id}`}>
-                                                            <div className={cn("cursor-pointer overflow-hidden rounded-md border-2 border-muted bg-popover transition-all hover:border-primary", radioField.value === img.id && "border-primary ring-2 ring-primary")}>
-                                                                <Image src={img.imageUrl} alt={img.description} width={200} height={150} className="aspect-video w-full object-cover" />
-                                                                <p className="p-2 text-xs font-medium truncate">{img.description}</p>
-                                                            </div>
-                                                        </FormLabel>
-                                                    </FormItem>
-                                                ))}
-                                            </RadioGroup>
-                                        </FormItem>
-                                    )}
-                                />
                             </TabsContent>
                             <TabsContent value="icon" className="mt-4">
                                 <FormField
